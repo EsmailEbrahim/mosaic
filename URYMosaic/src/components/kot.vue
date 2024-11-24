@@ -310,6 +310,7 @@ export default {
           this.call
             .get("ury_mosaic.ury_mosaic.api.ury_kot_display.kot_list", {})
             .then((result) => {
+              console.log(result.message)
               this.branch = result.message.Branch;
               this.kot_alert_time = result.message.kot_alert_time;
               this.audio_alert = result.message.audio_alert;
