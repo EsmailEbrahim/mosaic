@@ -462,45 +462,65 @@ export default {
     updateTimeRemaining() {
       // console.log("update time", this.kot_channel);
       this.kot.forEach((kot) => {
-        kot.timeRemaining = this.calculateTimeRemaining(kot.time);
+        kot.timeRemaining = this.calculateTimeRemaining(kot.time, kot.preparation_time);
+        console.log(kot.time);
+        console.log(kot.timeRemaining);
 
-        const timeRemaining = kot.timeRemaining.split(":");
-        const minutes =
-          parseInt(timeRemaining[0]) * 60 + parseInt(timeRemaining[1]);
+        const [hours, minutes] = kot.timeRemaining.split(":").map(Number);
+        const totalRemainingMinutes = hours * 60 + minutes;
 
+        // const timeRemaining = kot.timeRemaining.split(":");
+        // const minutes =
+        //   parseInt(timeRemaining[0]) * 60 + parseInt(timeRemaining[1]);
+
+        // if (
+        //   // minutes === this.kot_alert_time &&
+        //   minutes === kot.preparation_time &&
+        //   kot.type !== "Cancelled" &&
+        //   kot.type !== "Partially cancelled"
+        // )
         if (
-          // minutes === this.kot_alert_time &&
-          minutes === kot.preparation_time &&
+          totalRemainingMinutes <= 0 &&  // Alert when timer hits 0
           kot.type !== "Cancelled" &&
           kot.type !== "Partially cancelled"
-        ) {
+        )
+        {
           this.orderDelayNotify(kot);
         }
         // if (minutes >= this.kot_alert_time) {
-          if (minutes >= kot.preparation_time) {
+          // else if (minutes >= kot.preparation_time) {
+          if (totalRemainingMinutes <= 1) {
           kot.timecolor = "text-[#DC0000]";
         } else {
           kot.timecolor = "text-black";
         }
       });
     },
-    calculateTimeRemaining(targetTime) {
+    calculateTimeRemaining(createdTime, preparationTime) {
+
       const currentTime = new Date();
-      const [targetHours, targetMinutes, targetSeconds] = targetTime.split(":");
-      const targetDate = new Date(
+      const [createdHours, createdMinutes] = createdTime.split(":").map(Number);
+
+      const createdDate = new Date(
         currentTime.getFullYear(),
         currentTime.getMonth(),
         currentTime.getDate(),
-        targetHours,
-        targetMinutes,
-        targetSeconds
+        createdHours,
+        createdMinutes,
+        0
       );
 
-      const timeDifference = currentTime - targetDate;
-      const hoursRemaining = Math.floor(timeDifference / 3600000);
-      const minutesRemaining = Math.floor((timeDifference % 3600000) / 60000);
+      const elapsedTime = Math.floor((currentTime - createdDate) / 1000); // Elapsed time in seconds
+      const totalPreparationSeconds = preparationTime * 60; // Convert preparation time (minutes) to seconds
 
-      return `${hoursRemaining} : ${minutesRemaining}`;
+      const remainingSeconds = Math.max(totalPreparationSeconds - elapsedTime, 0); // Prevent negative values
+
+      const hoursRemaining = Math.floor(remainingSeconds / 3600); // 3600 seconds in an hour
+      const minutesRemaining = Math.floor((remainingSeconds % 3600) / 60); // Remaining minutes after removing hours
+
+      const formattedHours = String(hoursRemaining).padStart(2, '0');
+      const formattedMinutes = String(minutesRemaining).padStart(2, '0');
+      return `${formattedHours} : ${formattedMinutes}`;
     },
     fetchkotwithmasonry() {
       return this.fetchKOT().then(() => {
