@@ -8,17 +8,17 @@
       <div class="mt-20 flex items-center justify-center">
         <div class="w-full rounded-lg bg-white p-6 shadow-lg md:max-w-md">
           <p
-            class="block text-left text-xl font-medium text-gray dark:text-gray"
+            class="block text-right text-xl font-medium text-gray dark:text-gray"
           >
             <span
               class="w-3 h-3 rounded-full inline-block mr-1 bg-red-500"
             ></span>
-            Not Permitted
+            غير مصرح
           </p>
           <hr class="border-gray-200" />
 
-          <p class="text-left text-xl mt-6 font-medium text-gray-500">
-            Log in to access this page.
+          <p class="text-right text-xl mt-6 font-medium text-gray-500">
+            قم بتسجيل الدخول للوصول للصفحة.
           </p>
 
           <div class="flex justify">
@@ -29,7 +29,7 @@
               "
               class="mt-8 rounded bg-blue-500 px-3 py-2 text-white hover:bg-blue-600"
             >
-              Login
+              تسجيل الدخول
             </button>
           </div>
         </div>
@@ -38,7 +38,7 @@
     <!-- Alert Modal div end-->
 
     <div
-      class="mt-8 grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
+      class="mt-5 grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
     >
       <div v-for="kot in this.kot" :key="kot.name">
         <div
@@ -64,8 +64,8 @@
               >
                 {{
                   kot.type === "Cancelled" || kot.type === "Partially cancelled"
-                    ? "Confirm"
-                    : "Serve"
+                    ? "تأكيد"
+                    : "تقديم"
                 }}
               </button>
             </div>
@@ -74,12 +74,12 @@
               <!-- Serve Button -->
 
               <!-- Card Header: Table Name and Order Number -->
-              <div class="flex justify-between" @click="rotateCard(kot)">
+              <div class="flex justify-between hover:cursor-pointer" @click="rotateCard(kot)">
                 <div class="text-sm w-60">
                   <span
                     v-if="kot.tableortakeaway !== 'Takeaway'"
                     class="text-sm font-medium text-[#6B7280]"
-                    >Table
+                    >الطاولة
                   </span>
                   <span class="text-black-500 font-semibold">
                     {{ kot.tableortakeaway }}
@@ -88,20 +88,20 @@
                     ></span
                   ><br />
                   <span v-if="kot.is_aggregator" class="text-sm font-medium text-[#6B7280]">Aggregator</span>
-                  <span v-if="kot.is_aggregator" class="text-black-500 ml-2 font-semibold"
+                  <span v-if="kot.is_aggregator" class="text-black-500 mr-2 font-semibold"
                     >{{ kot.customer_name }}
                   </span><br v-if="kot.is_aggregator" />
                   <span v-if="kot.is_aggregator" class="text-sm font-medium text-[#6B7280]">Aggregator ID</span>
-                  <span v-if="kot.is_aggregator" class="text-black-500 ml-2 font-semibold"
+                  <span v-if="kot.is_aggregator" class="text-black-500 mr-2 font-semibold"
                     >{{ kot.aggregator_id }}
                   </span><br v-if="kot.is_aggregator"/>
-                  <span class="text-sm font-medium text-[#6B7280]">Order</span>
-                  <span class="text-black-500 ml-2 font-semibold"
+                  <span class="text-sm font-medium text-[#6B7280]">الطلب</span>
+                  <span class="text-black-500 mr-2 font-semibold"
                     >{{ this.daily_order_number ? kot.order_no : kot.invoice.slice(-4) }}
                     
                   </span>
                   <span
-                    class="text-black-500 ml-2 font-semibold"
+                    class="text-black-500 mr-2 font-semibold"
                     v-if="
                       kot.type === 'Partially cancelled' ||
                       kot.type === 'Cancelled'
@@ -142,16 +142,16 @@
                     :class="{
                       'line-through text-green-700': kotitem.striked,
                     }"
-                    class="flex font-semibold justify-between items-center"
+                    class="flex font-semibold justify-between items-center hover:cursor-pointer"
                   >
                     <div>
-                      <span class="ml-2 text-black-100">{{
+                      <span class="mr-2 text-black-100">{{
                         kotitem.item_name
-                      }}<span v-show="kotitem.indicate_course" class="text-sm text-gray-500 ml-1"> ( {{kotitem.course}} )</span>
+                      }}<span v-show="kotitem.indicate_course" class="text-sm text-gray-500 mr-1"> ( {{kotitem.course}} )</span>
                       </span
                       ><br />
                       <span
-                        class="ml-2 text-black-100"
+                        class="mr-2 text-black-100"
                         v-if="
                           kot.type === 'Partially cancelled' ||
                           kot.type === 'Cancelled'
@@ -160,13 +160,13 @@
                       >
                     </div>
                     <div>
-                      <span class="ml-2 text-black-100">{{ kotitem.qty }}</span>
+                      <span class="mr-2 text-black-100">{{ kotitem.qty }}</span>
                     </div>
                   </div>
                   <div>
                     <p
                       v-show="kotitem.comments"
-                      class="ml-2 text-[#6B7280] font-medium"
+                      class="mr-2 text-[#6B7280] font-medium"
                     >
                       {{ kotitem.comments }}
                     </p>
@@ -186,7 +186,7 @@
       v-if="showAudioAlertMessage"
       class="absolute top-1 left-1/2 transform -translate-x-1/2 p-2 font-bold text-2xl text-red-500 text-center"
     >
-      Audio notifications disabled. Click anywhere to enable.
+    تم تعطيل الإشعارات الصوتية. انقر في أي مكان لتمكينها.
     </div>
 
     <div
@@ -194,7 +194,7 @@
       :class="[
         'fixed',
         'bottom-10',
-        'right-10',
+        'left-10',
         'p-4',
         'rounded',
         'text-white',
@@ -210,7 +210,7 @@
   </div>
 </template>
 
-<script>
+<script>4
 import { FrappeApp } from "frappe-js-sdk";
 import Masonry from "masonry-layout";
 import io from "socket.io-client";

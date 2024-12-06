@@ -7,13 +7,16 @@ import resourceManager from "../../../doppio/libs/resourceManager";
 import call from "../../../doppio/libs/controllers/call";
 // import socket from "../../../doppio/libs/controllers/socket";
 import Auth from "../../../doppio/libs/controllers/auth";
+import { createPinia } from 'pinia';
 
+const pinia = createPinia();
 const app = createApp(App);
 const auth = reactive(new Auth());
 
 // Plugins
 app.use(router);
 app.use(resourceManager);
+app.use(pinia);
 
 // Global Properties,
 // components can inject this
