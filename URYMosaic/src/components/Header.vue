@@ -1,6 +1,10 @@
 <template>
-  <header class="bg-white p-4 flex justify-between items-center">
-    <a :href="'#'" class="flex items-center justify-between">
+  <header class="bg-white p-2 flex justify-between items-center">
+    <a :href="'#'" class="flex items-center justify-between" v-if="system_settings.restaurant_system_settings.show_erpnext_mosaic_logo">
+        <img v-if="system_settings.restaurant_system_settings.show_erpnext_mosaic_logo" :src="ERPNextMosaicLogoPath" alt="" class="h-12 w-auto"/>
+    </a>
+
+    <a :href="'#'" class="flex items-center justify-between" v-else>
         <img v-if="system_settings.restaurant_system_settings.show_system_logo_mosaic" :src="MosaicSystemLogoPath" alt="" class="h-10 w-10"/>
         <p v-if="system_settings.restaurant_system_settings.show_system_name_header_mosaic" class="text-blue-700 text-2xl lg:text-3xl md:text-3xl font-bold mx-2"> {{ system_settings.restaurant_system_settings.system_name || "Restaurant Mosaic" }} </p>
     </a>
@@ -16,6 +20,7 @@
 
 <script>
   import MosaicSystemLogo from "@/assets/logos/trilogy_icon.png";
+  import ERPNextMosaicLogo from "@/assets/logos/erpnext_mosaic_logo.jpg";
   import { useRestaurantSystemSettings } from "@/stores/RestaurantSystemSettings.js";
   // import KOT from './kot.vue';
 
@@ -29,6 +34,7 @@
     data() {
       return {
         MosaicSystemLogoPath: MosaicSystemLogo,
+        ERPNextMosaicLogoPath: ERPNextMosaicLogo,
         system_settings: this.settings,
       };
     },
