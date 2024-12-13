@@ -5,3 +5,9 @@
 tags
 ury_mosaic/docs/current
 node_modules/
+
+
+# #####################################################################
+ury_mosaic/www/URYMosaic.html
+ury_mosaic/public/URYMosaic/*
+# #####################################################################
