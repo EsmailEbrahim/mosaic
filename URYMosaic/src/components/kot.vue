@@ -45,7 +45,7 @@
                     :class="[kot.color]"
                     class="inline-block shadow-lg gap-4 p-3 rounded-2xl w-90 h-auto masonry-item"
                     style="margin-top: 28px"
-                    v-if="!kot.showDiv && kot.production === production"
+                    v-if="(production === 'URYMosaic' && system_settings.restaurant_system_settings.show_all_kots_when_no_production_unit_entered && !kot.showDiv) || (production != 'URYMosaic' && !kot.showDiv && kot.production === production)"
                 >
                     <div class="w-80 check">
                         <div
@@ -216,6 +216,7 @@
     import { FrappeApp } from "frappe-js-sdk";
     import Masonry from "masonry-layout";
     import io from "socket.io-client";
+    import { useRestaurantSystemSettings } from "@/stores/RestaurantSystemSettings.js";
 
     let host = window.location.hostname;
     let port = window.location.port;
@@ -279,8 +280,14 @@
                 audio_alert: 0,
                 isOnline: navigator.onLine,
                 statusMessage: "",
-                daily_order_number:0
+                daily_order_number:0,
+                system_settings: this.settings,
             };
+        },
+        setup() {
+            const settings = useRestaurantSystemSettings();
+
+            return {settings}
         },
         methods: {
             playAlertSound(path) {
