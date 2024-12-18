@@ -40,17 +40,18 @@
         <div
             class="mt-5 grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         >
-            <div v-for="kot in this.kot" :key="kot.name">
+            <div v-if="isURY_Barista || isURY_Kitchen || isURY_Kitchen_Control || isURY_Restaurant_Manager" v-for="kot in this.kot" :key="kot.name">
                 <div
                     :class="[kot.color]"
                     class="inline-block shadow-lg gap-4 p-3 rounded-2xl w-90 h-auto masonry-item"
                     style="margin-top: 28px"
-                    v-if="(production === 'URYMosaic' && system_settings.restaurant_system_settings.show_all_kots_when_no_production_unit_entered && !kot.showDiv) || (production != 'URYMosaic' && !kot.showDiv && kot.production === production)"
+                    v-if="shouldDisplayKot(kot)"
                 >
+                    <!-- v-if="(production === 'URYMosaic' && system_settings.restaurant_system_settings.show_all_kots_when_no_production_unit_entered && !kot.showDiv) || (production != 'URYMosaic' && !kot.showDiv && kot.production === production)" -->
                     <div class="w-80 check">
                         <div
                             :class="[{ hidden: !kot.isRotated }]"
-                            @click="rotateCard(kot)"
+                            @click="isURY_Kitchen_Control && rotateCard(kot)"
                             class="absolute inset-0 bg-white z-50 opacity-80 rounded-2xl flex flex-col justify-center items-center"
                         >
                             <button
@@ -73,12 +74,20 @@
                             <!-- Serve Button -->
 
                             <!-- Card Header: Table Name and Order Number -->
-                            <div class="flex justify-between hover:cursor-pointer" @click="rotateCard(kot)">
+                            <div class="flex justify-between hover:cursor-pointer" @click="isURY_Kitchen_Control && rotateCard(kot)">
                                 <div class="text-sm w-60">
+                                    <span
+                                        class="text-sm font-medium text-[#6B7280]"
+                                    >وحدة المطبخ:
+                                    </span>
+                                    <span class="text-black-500 mr-2 font-semibold">
+                                        {{ kot.production }}
+                                    </span>
+                                    <br>
                                     <span
                                         v-if="kot.tableortakeaway !== 'Takeaway'"
                                         class="text-sm font-medium text-[#6B7280]"
-                                    >الطاولة
+                                    >الطاولة:
                                     </span>
                                     <span class="text-black-500 font-semibold">
                                         {{ kot.tableortakeaway }}
@@ -87,17 +96,17 @@
                                         </span
                                     ></span>
                                     <br />
-                                    <span v-if="kot.is_aggregator" class="text-sm font-medium text-[#6B7280]">Aggregator</span>
+                                    <span v-if="kot.is_aggregator" class="text-sm font-medium text-[#6B7280]">التطبيقات الوسيطة</span>
                                     <span v-if="kot.is_aggregator" class="text-black-500 mr-2 font-semibold">
                                         {{ kot.customer_name }}
                                     </span>
                                     <br v-if="kot.is_aggregator" />
-                                    <span v-if="kot.is_aggregator" class="text-sm font-medium text-[#6B7280]">Aggregator ID</span>
+                                    <span v-if="kot.is_aggregator" class="text-sm font-medium text-[#6B7280]">مُعرف التطبيق الوسيط</span>
                                     <span v-if="kot.is_aggregator" class="text-black-500 mr-2 font-semibold">
                                         {{ kot.aggregator_id }}
                                     </span>
                                     <br v-if="kot.is_aggregator"/>
-                                    <span class="text-sm font-medium text-[#6B7280]">الطلب</span>
+                                    <span class="text-sm font-medium text-[#6B7280]">الطلب:</span>
                                     <span class="text-black-500 mr-2 font-semibold">
                                         {{ this.daily_order_number ? kot.order_no : kot.invoice.slice(-4) }}
                                     </span>
@@ -135,11 +144,7 @@
                                     :key="kotitem.name"
                                 >
                                     <div
-                                        @click="
-                                            () => {
-                                            toggleItemStrikeThrough(kotitem, kot);
-                                            }
-                                        "
+                                        @click="(isURY_Barista || isURY_Kitchen) ? toggleItemStrikeThrough(kotitem, kot) : null"
                                         :class="{
                                             'line-through text-green-700': kotitem.striked,
                                         }"
@@ -159,7 +164,7 @@
                                                 kot.type === 'Partially cancelled' ||
                                                 kot.type === 'Cancelled'"
                                         >
-                                            [Old Qty = {{ kotitem.quantity }}]</span
+                                            [الكمية السابقة = {{ kotitem.quantity }}]</span
                                         >
                                     </div>
                                     <div>
@@ -282,6 +287,12 @@
                 statusMessage: "",
                 daily_order_number:0,
                 system_settings: this.settings,
+                userRole: [],
+                isURY_Barista: false,
+                isURY_Kitchen: false,
+                isURY_Kitchen_Control: false,
+                isURY_Restaurant_Manager: false,
+                displayProductionUnits: [],
             };
         },
         setup() {
@@ -296,19 +307,47 @@
                 const audio = new Audio(audio_path);
                 audio.play();
             },
-            auth() {
+            async auth() {
                 return new Promise((resolve, reject) => {
                     const auth = frappe.auth();
                     auth.getLoggedInUser()
                         .then((user) => {
                             this.loggeduser = user;
-                            resolve();
+                            this.fetch_user_roles().then(() => {
+                                resolve();
+                            });
                         })
                         .catch((error) => {
                             console.error(error);
                             reject(error);
                         });
                 });
+            },
+            async fetch_user_roles() {
+                this.call
+                    .get("ury.ury_pos.api.get_user_roles", this.loggeduser)
+                    .then((result) => {
+                        this.userRole = result.message;
+                        this.isURY_Barista = this.userRole.includes("URY Barista");
+                        this.isURY_Kitchen = this.userRole.includes("URY Kitchen");
+                        this.isURY_Kitchen_Control = this.userRole.includes("URY Kitchen control");
+                        this.isURY_Restaurant_Manager = this.userRole.includes("URY Restaurant Manager");
+                        if(this.isURY_Barista) {
+                            this.displayProductionUnits = ['عصائر'];
+                        }
+                        else if (this.isURY_Kitchen) {
+                            this.displayProductionUnits = ['وجبات'];
+                        }
+                        else if (this.isURY_Kitchen_Control) {
+                            this.displayProductionUnits = ['وجبات', 'عصائر']
+                        }
+                        else if (this.isURY_Restaurant_Manager) {
+                            this.displayProductionUnits = ['وجبات', 'عصائر']
+                        }
+                        else {
+                            this.displayProductionUnits = []
+                        }
+                    });
             },
             fetchKOT() {
                 return new Promise((resolve, reject) => {
@@ -633,6 +672,19 @@
             sortedKotItems() {
                 return (kot) => {
                     return kot.kot_items.sort((a, b) => a.serve_priority - b.serve_priority);
+                };
+            },
+            shouldDisplayKot() {
+                return (kot_item) => {
+                    return (
+                        (
+                            (this.isURY_Barista && this.displayProductionUnits.includes(kot_item.production)) ||
+                            (this.isURY_Kitchen && this.displayProductionUnits.includes(kot_item.production)) ||
+                            (this.isURY_Kitchen_Control && this.displayProductionUnits.includes(kot_item.production)) ||
+                            (this.isURY_Restaurant_Manager && this.displayProductionUnits.includes(kot_item.production))
+                        ) &&
+                        !kot_item.showDiv
+                    );
                 };
             },
         },
