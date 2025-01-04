@@ -3,7 +3,8 @@
         <!-- Alert Modal div start-->
         <div
             v-if="this.showModal"
-            class="fixed inset-0 z-10 overflow-y-auto bg-gray-100"
+            class="fixed inset-0 z-10 overflow-y-auto bg-gray-500 bg-opacity-50"
+            @click="this.showModal = false"
         >
             <div class="mt-20 flex items-center justify-center">
                 <div class="w-full rounded-lg bg-white p-6 shadow-lg md:max-w-md">
@@ -120,11 +121,15 @@
                                         ( {{ kot.type }} )</span
                                     >
                                 </div>
-                                <div
-                                    :class="kot.timecolor"
+                                <div :class="[
+                                        (kot.timeRemaining >= (kot.preparation_time - 1) && kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled')
+                                        ? 'text-[#DC0000]' : 'text-black'
+                                    ]"
                                     class="font-inter font-semibold text-2xl leading-10"
                                 >
-                                    {{ kot.timeRemaining }}
+                                    <!-- :class="kot.timecolor" -->
+                                    {{ kot.timeRemaining }}<span class="text-sm">د</span>
+                                    <span class="text-sm text-gray-500">/ {{ kot.preparation_time }}د</span>
                                 </div>
                             </div>
                             <div
@@ -144,7 +149,10 @@
                                     :key="kotitem.name"
                                 >
                                     <div
-                                        @click="(isURY_Barista || isURY_Kitchen) ? toggleItemStrikeThrough(kotitem, kot) : null"
+                                        @click="(
+                                            (isURY_Barista && kot.production === 'عصائر') || 
+                                            (isURY_Kitchen && kot.production === 'وجبات')
+                                        ) ? toggleItemStrikeThrough(kotitem, kot) : null"
                                         :class="{
                                             'line-through text-green-700': kotitem.striked,
                                         }"
@@ -333,18 +341,20 @@
                         this.isURY_Kitchen_Control = this.userRole.includes("URY Kitchen control");
                         this.isURY_Restaurant_Manager = this.userRole.includes("URY Restaurant Manager");
                         if(this.isURY_Barista) {
-                            this.displayProductionUnits = ['عصائر'];
+                            this.displayProductionUnits.push('عصائر');
                         }
-                        else if (this.isURY_Kitchen) {
-                            this.displayProductionUnits = ['وجبات'];
+                        if(this.isURY_Kitchen) {
+                            this.displayProductionUnits.push('وجبات');
                         }
-                        else if (this.isURY_Kitchen_Control) {
-                            this.displayProductionUnits = ['وجبات', 'عصائر']
+                        if(this.isURY_Kitchen_Control) {
+                            this.displayProductionUnits.push('وجبات');
+                            this.displayProductionUnits.push('عصائر');
                         }
-                        else if (this.isURY_Restaurant_Manager) {
-                            this.displayProductionUnits = ['وجبات', 'عصائر']
+                        if(this.isURY_Restaurant_Manager) {
+                            this.displayProductionUnits.push('وجبات');
+                            this.displayProductionUnits.push('عصائر');
                         }
-                        else {
+                        if(!this.isURY_Barista && !this.isURY_Kitchen && !this.isURY_Kitchen_Control && !this.isURY_Restaurant_Manager) {
                             this.displayProductionUnits = []
                         }
                     });
@@ -417,6 +427,17 @@
                     })
                     .catch((error) => console.error(error));
             },
+            async strikeOrderItem(item) {
+                this.call
+                    .post("ury_mosaic.ury_mosaic.api.ury_kot_display.strike_kot_item", {
+                        item_name: item.name,
+                        striked: item.striked,
+                    })
+                    .then((result) => {
+                        
+                    })
+                    .catch((error) => console.error(error));
+            },
             async orderDelayNotify(kot) {
                 const now = new Date();
                 this.currentTime = now.toLocaleTimeString();
@@ -433,10 +454,11 @@
             },
             toggleItemStrikeThrough(kotitem, kot) {
                 kotitem.striked = !kotitem.striked;
-                localStorage.setItem(
-                    `${kot.name}_${kotitem.name}_strike`,
-                    JSON.stringify(kotitem.striked)
-                );
+                this.strikeOrderItem(kotitem);
+                // localStorage.setItem(
+                //     `${kot.name}_${kotitem.name}_strike`,
+                //     JSON.stringify(kotitem.striked)
+                // );
             },
             updateColorandTable(kot, restaurant_table, type, table_takeaway) {
                 if (restaurant_table === undefined) {
@@ -468,12 +490,12 @@
                     );
 
                     kot.kot_items.forEach((kotitem) => {
-                        const savedState = localStorage.getItem(
-                            `${kot.name}_${kotitem.name}_strike`
-                        );
-                        if (savedState) {
-                            kotitem.striked = JSON.parse(savedState);
-                        }
+                        // const savedState = localStorage.getItem(
+                        //     `${kot.name}_${kotitem.name}_strike`
+                        // );
+                        // if (savedState) {
+                        //     kotitem.striked = JSON.parse(savedState);
+                        // }
                         this.calculateQty(
                             kotitem,
                             kotitem.quantity,
@@ -502,41 +524,70 @@
             updateTimeRemaining() {
                 // console.log("update time", this.kot_channel);
                 this.kot.forEach((kot) => {
-                    kot.timeRemaining = this.calculateTimeRemaining(kot.time, kot.preparation_time);
+                    kot.timeRemaining = this.calculateTimeElapsed(kot.time, kot.preparation_time);
+                    
                     console.log(kot.time);
                     console.log(kot.timeRemaining);
 
-                    const [hours, minutes] = kot.timeRemaining.split(":").map(Number);
-                    const totalRemainingMinutes = hours * 60 + minutes;
+                    const totalElapsedMinutes = kot.timeRemaining;
 
-                    // const timeRemaining = kot.timeRemaining.split(":");
-                    // const minutes =
-                    //   parseInt(timeRemaining[0]) * 60 + parseInt(timeRemaining[1]);
+                    // const [hours, minutes] = kot.timeRemaining.split(":").map(Number);
+                    // const totalElapsedMinutes = hours * 60 + minutes;
 
                     // if (
-                    //   // minutes === this.kot_alert_time &&
-                    //   minutes === kot.preparation_time &&
-                    //   kot.type !== "Cancelled" &&
-                    //   kot.type !== "Partially cancelled"
-                    // )
+                    //     totalElapsedMinutes >= (kot.preparation_time - 1) && // Time has exceeded preparation time
+                    //     kot.type !== "Cancelled" &&
+                    //     kot.type !== "Partially cancelled"
+                    // ) {
+                    //     kot.timecolor = "text-[#DC0000]"; // Red color
+                    // } else {
+                    //     kot.timecolor = "text-black"; // Default color
+                    // }
+
                     if (
-                        totalRemainingMinutes <= 0 &&  // Alert when timer hits 0
+                        totalElapsedMinutes >= kot.preparation_time &&  // Alert when timer has exceeded preparation time
                         kot.type !== "Cancelled" &&
                         kot.type !== "Partially cancelled"
                     )
                     {
                         this.orderDelayNotify(kot);
                     }
-                    // if (minutes >= this.kot_alert_time) {
-                    // else if (minutes >= kot.preparation_time) {
-                    if (totalRemainingMinutes <= 1) {
-                        kot.timecolor = "text-[#DC0000]";
-                    } else {
-                        kot.timecolor = "text-black";
-                    }
+
+                    // kot.timeRemaining = this.calculateTimeRemaining(kot.time, kot.preparation_time);
+                    // console.log(kot.time);
+                    // console.log(kot.timeRemaining);
+
+                    // const [hours, minutes] = kot.timeRemaining.split(":").map(Number);
+                    // const totalRemainingMinutes = hours * 60 + minutes;
+
+                    // // const timeRemaining = kot.timeRemaining.split(":");
+                    // // const minutes =
+                    // //   parseInt(timeRemaining[0]) * 60 + parseInt(timeRemaining[1]);
+
+                    // // if (
+                    // //   // minutes === this.kot_alert_time &&
+                    // //   minutes === kot.preparation_time &&
+                    // //   kot.type !== "Cancelled" &&
+                    // //   kot.type !== "Partially cancelled"
+                    // // )
+                    // if (
+                    //     totalRemainingMinutes <= 0 &&  // Alert when timer hits 0
+                    //     kot.type !== "Cancelled" &&
+                    //     kot.type !== "Partially cancelled"
+                    // )
+                    // {
+                    //     this.orderDelayNotify(kot);
+                    // }
+                    // // if (minutes >= this.kot_alert_time) {
+                    // // else if (minutes >= kot.preparation_time) {
+                    // if (totalRemainingMinutes <= 1) {
+                    //     kot.timecolor = "text-[#DC0000]";
+                    // } else {
+                    //     kot.timecolor = "text-black";
+                    // }
                 });
             },
-            calculateTimeRemaining(createdTime, preparationTime) {
+            calculateTimeElapsed(createdTime, preparationTime) {
                 const currentTime = new Date();
                 const [createdHours, createdMinutes] = createdTime.split(":").map(Number);
 
@@ -550,17 +601,51 @@
                 );
 
                 const elapsedTime = Math.floor((currentTime - createdDate) / 1000); // Elapsed time in seconds
-                const totalPreparationSeconds = preparationTime * 60; // Convert preparation time (minutes) to seconds
+                const totalMinutesElapsed = Math.floor(elapsedTime / 60); // Convert total elapsed seconds to minutes
 
-                const remainingSeconds = Math.max(totalPreparationSeconds - elapsedTime, 0); // Prevent negative values
+                return totalMinutesElapsed; // Return the total elapsed time in minutes
 
-                const hoursRemaining = Math.floor(remainingSeconds / 3600); // 3600 seconds in an hour
-                const minutesRemaining = Math.floor((remainingSeconds % 3600) / 60); // Remaining minutes after removing hours
+                // const elapsedTime = Math.floor((currentTime - createdDate) / 1000); // Elapsed time in seconds
 
-                const formattedHours = String(hoursRemaining).padStart(2, '0');
-                const formattedMinutes = String(minutesRemaining).padStart(2, '0');
-                return `${formattedHours} : ${formattedMinutes}`;
+                // const hoursElapsed = Math.floor(elapsedTime / 3600); // 3600 seconds in an hour
+                // const minutesElapsed = Math.floor((elapsedTime % 3600) / 60); // Remaining minutes after removing hours
+
+                // const formattedHours = String(hoursElapsed).padStart(2, '0');
+                // const formattedMinutes = String(minutesElapsed).padStart(2, '0');
+
+                // if (hoursElapsed === 0) {
+                //     return `${minutesElapsed}`; // Return only minutes if no hours
+                // }
+                // return `${formattedHours} : ${formattedMinutes}`; // Return HH : MM format
             },
+            // calculateTimeRemaining(createdTime, preparationTime) {
+            //     const currentTime = new Date();
+            //     const [createdHours, createdMinutes] = createdTime.split(":").map(Number);
+
+            //     const createdDate = new Date(
+            //         currentTime.getFullYear(),
+            //         currentTime.getMonth(),
+            //         currentTime.getDate(),
+            //         createdHours,
+            //         createdMinutes,
+            //         0
+            //     );
+
+            //     const elapsedTime = Math.floor((currentTime - createdDate) / 1000); // Elapsed time in seconds
+            //     const totalPreparationSeconds = preparationTime * 60; // Convert preparation time (minutes) to seconds
+
+            //     const remainingSeconds = Math.max(totalPreparationSeconds - elapsedTime, 0); // Prevent negative values
+
+            //     const hoursRemaining = Math.floor(remainingSeconds / 3600); // 3600 seconds in an hour
+            //     const minutesRemaining = Math.floor((remainingSeconds % 3600) / 60); // Remaining minutes after removing hours
+
+            //     const formattedHours = String(hoursRemaining).padStart(2, '0');
+            //     const formattedMinutes = String(minutesRemaining).padStart(2, '0');
+            //     if (hoursRemaining === 0) {
+            //         return `${minutesRemaining}`;
+            //     }
+            //     return `${formattedHours} : ${formattedMinutes}`;
+            // },
             fetchkotwithmasonry() {
                 return this.fetchKOT().then(() => {
                     this.masonryLoading();
@@ -691,8 +776,12 @@
     };
 </script>
 
-<style>
+<style scoped>
     .bg-gray-100 {
         background-color: rgba(0, 0, 0, 0.2);
+    }
+
+    * {
+        user-select: none;
     }
 </style>

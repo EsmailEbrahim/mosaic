@@ -18,6 +18,11 @@ def serve_kot(name, time):
     frappe.db.set_value("URY KOT", name, "order_status", "Served")
 
 
+@frappe.whitelist()
+def strike_kot_item(item_name, striked):
+    frappe.db.set_value("URY KOT Items", item_name, "striked", striked)
+
+
 # Function to mark it as verified by a user in cancel type KOT
 @frappe.whitelist()
 def confirm_cancel_kot(name, user):
