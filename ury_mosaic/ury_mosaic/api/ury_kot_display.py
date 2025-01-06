@@ -37,7 +37,10 @@ def get_site_name():
 @frappe.whitelist()
 def kot_list():
     today = frappe.utils.now()
+
     branch = getBranch()
+    custom_branch_in_english = frappe.db.get_value("Branch", branch, 'custom_branch_in_english')
+
     kot_alert_time = frappe.db.get_value(
         "POS Profile", {"branch": branch}, "custom_kot_warning_time"
     )
@@ -78,6 +81,7 @@ def kot_list():
     return {
         "KOT": KOT,
         "Branch": branch,
+        "custom_branch_in_english": custom_branch_in_english,
         "kot_alert_time": kot_alert_time,
         "audio_alert": audio_alert,
         "daily_order_number":daily_order_number

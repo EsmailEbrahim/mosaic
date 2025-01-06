@@ -87,14 +87,22 @@ class URYKOT(Document):
     # Function for displaying KOT-related information in real-time On KDS(Kitchen Display System)
     def kotDisplayRealtime(self):
         currentBranch = self.branch
+        custom_branch_in_english = frappe.db.get_value("Branch", currentBranch, 'custom_branch_in_english')
+
         production = self.production
+        production_in_english = frappe.db.get_value("URY Production Unit", production, 'production_in_english')
+
         kotjson = json.loads(frappe.as_json(self))
         audio_file = frappe.db.get_value(
             "POS Profile", self.pos_profile, "custom_kot_alert_sound"
         )
-        cache_key = "{}_{}_last_kot_time".format(currentBranch, production)
+
+        # cache_key = "{}_{}_last_kot_time".format(currentBranch, production)
+        cache_key = "{}_{}_last_kot_time".format(custom_branch_in_english, production_in_english)
         time = frappe.cache().get_value(cache_key)
-        kot_channel = "{}_{}_{}".format("kot_update", currentBranch, production)
+
+        # kot_channel = "{}_{}_{}".format("kot_update", currentBranch, production)
+        kot_channel = "{}_{}_{}".format("kot_update", custom_branch_in_english, production_in_english)
         frappe.publish_realtime(
             kot_channel,
             {"kot": kotjson, "audio_file": audio_file, "last_kot_time": time},

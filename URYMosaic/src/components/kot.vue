@@ -283,7 +283,10 @@
                 call: frappe.call(),
                 production: "",
                 branch: "",
-                kot_channel: "",
+                custom_branch_in_english: "",
+                // kot_channel: "",
+                kot_channel_barista: "",
+                kot_channel_kitchen: "",
                 clickedItems: new Set(),
                 struckThroughItems: {},
                 loggeduser: "",
@@ -367,10 +370,15 @@
                             .then((result) => {
                                 // console.log(result.message.KOT)
                                 this.branch = result.message.Branch;
+                                this.custom_branch_in_english = result.message.custom_branch_in_english;
                                 this.kot_alert_time = result.message.kot_alert_time;
                                 this.audio_alert = result.message.audio_alert;
                                 this.daily_order_number = result.message.daily_order_number;
-                                this.kot_channel = `kot_update_${this.branch}_${this.production}`;
+
+                                // this.kot_channel = `kot_update_${this.branch}_${this.production}`;
+                                this.kot_channel_barista = `kot_update_${this.custom_branch_in_english}_${'barista'}`;
+                                this.kot_channel_kitchen = `kot_update_${this.custom_branch_in_english}_${'kitchen'}`;
+
                                 this.kot = result.message.KOT;
                                 this.updateQtyColorTable();
                                 this.updateTimeRemaining();
@@ -715,31 +723,85 @@
                         if (this.audio_alert === 1) {
                             this.showAudioAlertMessage = true;
                         }
-                        socket.on(this.kot_channel, (doc) => {
-                            if (this.audio_alert === 1) {
-                                this.playAlertSound(doc.audio_file);
-                            }
-                            let kottime = localStorage.getItem("kot_time");
-                            if (doc.last_kot_time !== null) {
-                                if (doc.last_kot_time !== kottime) {
-                                    this.fetchKOT().then(() => {
-                                    this.masonryLoading();
-                                    });
+                        // socket.on(this.kot_channel, (doc) => {
+                        //     if (this.audio_alert === 1) {
+                        //         this.playAlertSound(doc.audio_file);
+                        //     }
+                        //     let kottime = localStorage.getItem("kot_time");
+                        //     if (doc.last_kot_time !== null) {
+                        //         if (doc.last_kot_time !== kottime) {
+                        //             this.fetchKOT().then(() => {
+                        //             this.masonryLoading();
+                        //             });
+                        //         }
+                        //     }
+                        //     this.kot.unshift(doc.kot);
+                        //     this.masonryLoading();
+                        //     this.updateQtyColorTable();
+                        //     this.updateTimeRemaining();
+                        //     setTimeout(()=>{
+                        //         if (doc.kot.type === "Cancelled"){
+                        //             this.fetchKOT().then(() => {
+                        //             this.masonryLoading();
+                        //             });
+                        //         }
+                        //     },1500)
+                        //     localStorage.setItem("kot_time", doc.kot.time);
+                        // });
+                        if(this.isURY_Barista || this.isURY_Kitchen_Control || this.isURY_Restaurant_Manager) {
+                            socket.on(this.kot_channel_barista, (doc) => {
+                                if (this.audio_alert === 1) {
+                                    this.playAlertSound(doc.audio_file);
                                 }
-                            }
-                            this.kot.unshift(doc.kot);
-                            this.masonryLoading();
-                            this.updateQtyColorTable();
-                            this.updateTimeRemaining();
-                            setTimeout(()=>{
-                                if (doc.kot.type === "Cancelled"){
-                                    this.fetchKOT().then(() => {
-                                    this.masonryLoading();
-                                    });
+                                let kottime = localStorage.getItem("barista_kot_time");
+                                if (doc.last_kot_time !== null) {
+                                    if (doc.last_kot_time !== kottime) {
+                                        this.fetchKOT().then(() => {
+                                            this.masonryLoading();
+                                        });
+                                    }
                                 }
-                            },1500)
-                            localStorage.setItem("kot_time", doc.kot.time);
-                        });
+                                this.kot.unshift(doc.kot);
+                                this.masonryLoading();
+                                this.updateQtyColorTable();
+                                this.updateTimeRemaining();
+                                setTimeout(()=>{
+                                    if (doc.kot.type === "Cancelled"){
+                                        this.fetchKOT().then(() => {
+                                            this.masonryLoading();
+                                        });
+                                    }
+                                },1500)
+                                localStorage.setItem("barista_kot_time", doc.kot.time);
+                            });
+                        }
+                        if(this.isURY_Kitchen || this.isURY_Kitchen_Control || this.isURY_Restaurant_Manager) {
+                            socket.on(this.kot_channel_kitchen, (doc) => {
+                                if (this.audio_alert === 1) {
+                                    this.playAlertSound(doc.audio_file);
+                                }
+                                let kottime = localStorage.getItem("kitchen_kot_time");
+                                if (doc.last_kot_time !== null) {
+                                    if (doc.last_kot_time !== kottime) {
+                                        this.fetchKOT().then(() => {
+                                            this.masonryLoading();
+                                        });
+                                    }
+                                }
+                                this.kot.unshift(doc.kot);
+                                this.masonryLoading();
+                                this.updateQtyColorTable();
+                                this.updateTimeRemaining();
+                                setTimeout(()=>{
+                                    if (doc.kot.type === "Cancelled"){
+                                        this.fetchKOT().then(() => {
+                                            this.masonryLoading();
+                                        });
+                                    }
+                                },1500)
+                                localStorage.setItem("kitchen_kot_time", doc.kot.time);
+                            });
+                        }
                     });
                 })
             .catch((error) => {

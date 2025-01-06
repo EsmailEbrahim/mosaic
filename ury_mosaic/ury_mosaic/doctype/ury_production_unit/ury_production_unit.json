@@ -9,6 +9,7 @@
  "engine": "InnoDB",
  "field_order": [
   "production",
+  "production_in_english",
   "pos_profile",
   "branch",
   "warehouse",
@@ -62,11 +63,17 @@
    "fieldtype": "Table",
    "label": "Printers",
    "options": "URY Printer Settings"
+  },
+  {
+   "description": "One word without whitespace. (For Backend)",
+   "fieldname": "production_in_english",
+   "fieldtype": "Data",
+   "label": "Production in English"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-10-04 18:52:21.594992",
+ "modified": "2025-01-06 20:52:27.484328",
  "modified_by": "Administrator",
  "module": "URY Mosaic",
  "name": "URY Production Unit",
@@ -93,7 +100,7 @@
    "print": 1,
    "read": 1,
    "report": 1,
-   "role": "URY Manager",
+   "role": "URY Restaurant Manager",
    "select": 1,
    "share": 1,
    "write": 1
