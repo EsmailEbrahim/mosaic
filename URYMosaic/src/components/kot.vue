@@ -287,6 +287,7 @@
                 // kot_channel: "",
                 kot_channel_barista: "",
                 kot_channel_kitchen: "",
+                kot_channel_fetch: "",
                 clickedItems: new Set(),
                 struckThroughItems: {},
                 loggeduser: "",
@@ -378,6 +379,7 @@
                                 // this.kot_channel = `kot_update_${this.branch}_${this.production}`;
                                 this.kot_channel_barista = `kot_update_${this.custom_branch_in_english}_${'barista'}`;
                                 this.kot_channel_kitchen = `kot_update_${this.custom_branch_in_english}_${'kitchen'}`;
+                                this.kot_channel_fetch = `kot_update_${this.custom_branch_in_english}`;
 
                                 this.kot = result.message.KOT;
                                 this.updateQtyColorTable();
@@ -802,6 +804,13 @@
                                 localStorage.setItem("kitchen_kot_time", doc.kot.time);
                             });
                         }
+
+                        if(this.isURY_Barista || this.isURY_Kitchen || this.isURY_Kitchen_Control || this.isURY_Restaurant_Manager) {
+                            socket.on(this.kot_channel_fetch, (event) => {
+                                console.log('event', event);
+                                this.fetchKOT();
+                            });
+                        }                        
                     });
                 })
             .catch((error) => {

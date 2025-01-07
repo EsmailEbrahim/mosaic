@@ -5,6 +5,26 @@ from ury.ury_pos.api import getBranch
 from frappe.utils import get_datetime
 
 
+# #######################################################################################################
+def send_fetch_table_order_status_to_pos(branch, user, event):
+    custom_branch_in_english = frappe.get_cached_value("Branch", branch, 'custom_branch_in_english')
+    kot_channel = "{}_{}_{}".format("kot_update", custom_branch_in_english, user)
+    frappe.publish_realtime(
+        kot_channel,
+        {"event": event},
+    )
+# #######################################################################################################
+
+
+def send_fetch_kot_socket_to_mosaic(branch, event):
+    custom_branch_in_english = frappe.get_cached_value("Branch", branch, 'custom_branch_in_english')
+    kot_channel = "{}_{}".format("kot_update", custom_branch_in_english)
+    frappe.publish_realtime(
+        kot_channel,
+        {"event": event},
+    )
+
+
 # Function to set order status in a KOT document
 @frappe.whitelist()
 def serve_kot(name, time):
@@ -17,10 +37,19 @@ def serve_kot(name, time):
     frappe.db.set_value("URY KOT",name,"production_time",production_time_minutes)
     frappe.db.set_value("URY KOT", name, "order_status", "Served")
 
+    branch = frappe.db.get_value("URY KOT", name, "branch")
+
+    send_fetch_kot_socket_to_mosaic(branch, "serve_kot")
+
 
 @frappe.whitelist()
 def strike_kot_item(item_name, striked):
     frappe.db.set_value("URY KOT Items", item_name, "striked", striked)
+    parent = frappe.db.get_value("URY KOT Items", item_name, "parent")
+
+    branch = frappe.db.get_value("URY KOT", parent, "branch")
+
+    send_fetch_kot_socket_to_mosaic(branch, "strike_kot_item")
 
 
 # Function to mark it as verified by a user in cancel type KOT
@@ -28,6 +57,10 @@ def strike_kot_item(item_name, striked):
 def confirm_cancel_kot(name, user):
     frappe.db.set_value("URY KOT", name, "verified", 1)
     frappe.db.set_value("URY KOT", name, "verified_by", user)
+
+    branch = frappe.db.get_value("URY KOT", name, "branch")
+
+    send_fetch_kot_socket_to_mosaic(branch, "confirm_cancel_kot")
 
 
 @frappe.whitelist(allow_guest=True)
