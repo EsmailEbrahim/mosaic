@@ -52,22 +52,29 @@
                     <div class="w-80 check">
                         <div
                             :class="[{ hidden: !kot.isRotated }]"
-                            @click="isURY_Kitchen_Control && rotateCard(kot)"
+                            @click="
+                                (((isURY_Kitchen_Control) && (kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled')) && rotateCard(kot)) ||
+                                ((((isURY_Barista && kot.production === 'عصائر') || (isURY_Kitchen && kot.production === 'وجبات')) && (kot.type === 'Cancelled' || kot.type === 'Partially cancelled')) && rotateCard(kot))
+                            "
                             class="absolute inset-0 bg-white z-50 opacity-80 rounded-2xl flex flex-col justify-center items-center"
                         >
                             <button
                                 @click="
-                                    kot.type === 'Cancelled' || kot.type === 'Partially cancelled'
+                                    (kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled' && isURY_Kitchen_Control)
+                                    ? serveOrder(kot)
+                                    : (kot.type === 'Cancelled' || kot.type === 'Partially cancelled') && ((isURY_Barista && kot.production === 'عصائر') || (isURY_Kitchen && kot.production === 'وجبات'))
                                     ? confirmOrder(kot)
-                                    : serveOrder(kot)
+                                    : null
                                 "
                                 :class="[{ hidden: !kot.isRotated }]"
                                 class="py-2 px-6 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
                             >
                                 {{
-                                    kot.type === "Cancelled" || kot.type === "Partially cancelled"
+                                    (kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled' && isURY_Kitchen_Control)
+                                    ? "تقديم"
+                                    : (kot.type === 'Cancelled' || kot.type === 'Partially cancelled') && ((isURY_Barista && kot.production === 'عصائر') || (isURY_Kitchen && kot.production === 'وجبات'))
                                     ? "تأكيد"
-                                    : "تقديم"
+                                    : ""
                                 }}
                             </button>
                         </div>
@@ -75,7 +82,13 @@
                             <!-- Serve Button -->
 
                             <!-- Card Header: Table Name and Order Number -->
-                            <div class="flex justify-between hover:cursor-pointer" @click="isURY_Kitchen_Control && rotateCard(kot)">
+                            <div
+                                class="flex justify-between hover:cursor-pointer"
+                                @click="
+                                    (((isURY_Kitchen_Control) && (kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled')) && rotateCard(kot)) ||
+                                    ((((isURY_Barista && kot.production === 'عصائر') || isURY_Kitchen && kot.production === 'وجبات') && (kot.type === 'Cancelled' || kot.type === 'Partially cancelled')) && rotateCard(kot))
+                                "
+                            >
                                 <div class="text-sm w-60">
                                     <span
                                         class="text-sm font-medium text-[#6B7280]"
