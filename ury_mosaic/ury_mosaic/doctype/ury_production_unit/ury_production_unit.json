@@ -15,7 +15,11 @@
   "warehouse",
   "item_groups",
   "printer_info_section",
-  "printer_settings"
+  "printer_settings",
+  "section_break_yszw",
+  "silent_print_format",
+  "column_break_kxmw",
+  "silent_print_type"
  ],
  "fields": [
   {
@@ -69,11 +73,30 @@
    "fieldname": "production_in_english",
    "fieldtype": "Data",
    "label": "Production in English"
+  },
+  {
+   "fieldname": "section_break_yszw",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "silent_print_format",
+   "fieldtype": "Link",
+   "label": "Silent Print Format",
+   "options": "Silent Print Format"
+  },
+  {
+   "fieldname": "column_break_kxmw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "silent_print_type",
+   "fieldtype": "Data",
+   "label": "Silent Print Type"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-06 20:52:27.484328",
+ "modified": "2025-01-17 21:44:01.914413",
  "modified_by": "Administrator",
  "module": "URY Mosaic",
  "name": "URY Production Unit",
