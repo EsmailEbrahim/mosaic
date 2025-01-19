@@ -10,6 +10,7 @@
  "field_order": [
   "production",
   "production_in_english",
+  "kitchen_unit_group",
   "pos_profile",
   "branch",
   "warehouse",
@@ -113,11 +114,18 @@
    "fieldtype": "Link",
    "label": "Role Responsible for Serving KOT ",
    "options": "Role"
+  },
+  {
+   "fieldname": "kitchen_unit_group",
+   "fieldtype": "Link",
+   "in_list_view": 1,
+   "label": "Kitchen Unit Group",
+   "options": "URY Kitchen Unit Group"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-17 21:44:01.914413",
+ "modified": "2025-01-19 04:50:42.404157",
  "modified_by": "Administrator",
  "module": "URY Mosaic",
  "name": "URY Production Unit",
