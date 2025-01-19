@@ -14,6 +14,9 @@
   "branch",
   "warehouse",
   "item_groups",
+  "role_responsible_for_updating_kot_items_status",
+  "role_responsible_for_confirming_cancelled_kot",
+  "role_responsible_for_serving_kot",
   "printer_info_section",
   "printer_settings",
   "section_break_yszw",
@@ -92,6 +95,24 @@
    "fieldname": "silent_print_type",
    "fieldtype": "Data",
    "label": "Silent Print Type"
+  },
+  {
+   "fieldname": "role_responsible_for_updating_kot_items_status",
+   "fieldtype": "Link",
+   "label": "Role Responsible for Updating KOT Items Status",
+   "options": "Role"
+  },
+  {
+   "fieldname": "role_responsible_for_confirming_cancelled_kot",
+   "fieldtype": "Link",
+   "label": "Role Responsible for Confirming Cancelled KOT",
+   "options": "Role"
+  },
+  {
+   "fieldname": "role_responsible_for_serving_kot",
+   "fieldtype": "Link",
+   "label": "Role Responsible for Serving KOT ",
+   "options": "Role"
   }
  ],
  "index_web_pages_for_search": 1,

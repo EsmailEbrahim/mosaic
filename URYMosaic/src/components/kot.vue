@@ -41,28 +41,27 @@
         <div
             class="mt-5 grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4"
         >
-            <div v-if="isURY_Barista || isURY_Kitchen || isURY_Kitchen_Control || isURY_Restaurant_Manager" v-for="kot in this.kot" :key="kot.name">
+            <div v-for="kot in this.kot" :key="kot.name">
                 <div
                     :class="[kot.color]"
                     class="inline-block shadow-lg gap-4 p-3 rounded-2xl w-90 h-auto masonry-item"
                     style="margin-top: 28px"
-                    v-if="shouldDisplayKot(kot)"
+                    v-if="!kot.showDiv"
                 >
-                    <!-- v-if="(production === 'URYMosaic' && system_settings.restaurant_system_settings.show_all_kots_when_no_production_unit_entered && !kot.showDiv) || (production != 'URYMosaic' && !kot.showDiv && kot.production === production)" -->
                     <div class="w-80 check">
                         <div
                             :class="[{ hidden: !kot.isRotated }]"
                             @click="
-                                (((isURY_Kitchen_Control) && (kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled')) && rotateCard(kot)) ||
-                                ((((isURY_Barista && kot.production === 'عصائر') || (isURY_Kitchen && kot.production === 'وجبات')) && (kot.type === 'Cancelled' || kot.type === 'Partially cancelled')) && rotateCard(kot))
+                                (((userRole.includes(production_units_roles_map[kot.production]['role_responsible_for_serving_kot'])) && (kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled')) && rotateCard(kot)) ||
+                                (((userRole.includes(production_units_roles_map[kot.production]['role_responsible_for_confirming_cancelled_kot'])) && (kot.type === 'Cancelled' || kot.type === 'Partially cancelled')) && rotateCard(kot))
                             "
                             class="absolute inset-0 bg-white z-50 opacity-80 rounded-2xl flex flex-col justify-center items-center"
                         >
                             <button
                                 @click="
-                                    (kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled' && isURY_Kitchen_Control)
+                                    (kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled' && userRole.includes(production_units_roles_map[kot.production]['role_responsible_for_serving_kot']))
                                     ? serveOrder(kot)
-                                    : (kot.type === 'Cancelled' || kot.type === 'Partially cancelled') && ((isURY_Barista && kot.production === 'عصائر') || (isURY_Kitchen && kot.production === 'وجبات'))
+                                    : (kot.type === 'Cancelled' || kot.type === 'Partially cancelled') && userRole.includes(production_units_roles_map[kot.production]['role_responsible_for_confirming_cancelled_kot'])
                                     ? confirmOrder(kot)
                                     : null
                                 "
@@ -70,9 +69,9 @@
                                 class="py-2 px-6 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-300 ease-in-out"
                             >
                                 {{
-                                    (kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled' && isURY_Kitchen_Control)
+                                    (kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled' && userRole.includes(production_units_roles_map[kot.production]['role_responsible_for_serving_kot']))
                                     ? "تقديم"
-                                    : (kot.type === 'Cancelled' || kot.type === 'Partially cancelled') && ((isURY_Barista && kot.production === 'عصائر') || (isURY_Kitchen && kot.production === 'وجبات'))
+                                    : (kot.type === 'Cancelled' || kot.type === 'Partially cancelled') && userRole.includes(production_units_roles_map[kot.production]['role_responsible_for_confirming_cancelled_kot'])
                                     ? "تأكيد"
                                     : ""
                                 }}
@@ -85,8 +84,8 @@
                             <div
                                 class="flex justify-between hover:cursor-pointer"
                                 @click="
-                                    (((isURY_Kitchen_Control) && (kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled')) && rotateCard(kot)) ||
-                                    ((((isURY_Barista && kot.production === 'عصائر') || isURY_Kitchen && kot.production === 'وجبات') && (kot.type === 'Cancelled' || kot.type === 'Partially cancelled')) && rotateCard(kot))
+                                    (((userRole.includes(production_units_roles_map[kot.production]['role_responsible_for_serving_kot'])) && (kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled')) && rotateCard(kot)) ||
+                                    (((userRole.includes(production_units_roles_map[kot.production]['role_responsible_for_confirming_cancelled_kot'])) && (kot.type === 'Cancelled' || kot.type === 'Partially cancelled')) && rotateCard(kot))
                                 "
                             >
                                 <div class="text-sm w-60">
@@ -162,10 +161,11 @@
                                     :key="kotitem.name"
                                 >
                                     <div
-                                        @click="(
-                                            (isURY_Barista && kot.production === 'عصائر') || 
-                                            (isURY_Kitchen && kot.production === 'وجبات')
-                                        ) ? toggleItemStrikeThrough(kotitem, kot) : null"
+                                        @click="
+                                            userRole.includes(production_units_roles_map[kot.production]['role_responsible_for_updating_kot_items_status'])
+                                            ? toggleItemStrikeThrough(kotitem, kot)
+                                            : null
+                                        "
                                         :class="{
                                             'line-through text-green-700': kotitem.striked,
                                         }"
@@ -297,9 +297,9 @@
                 production: "",
                 branch: "",
                 custom_branch_in_english: "",
-                // kot_channel: "",
-                kot_channel_barista: "",
-                kot_channel_kitchen: "",
+                // kot_channel_barista: "",
+                // kot_channel_kitchen: "",
+                kot_channel: "",
                 kot_channel_fetch: "",
                 clickedItems: new Set(),
                 struckThroughItems: {},
@@ -313,11 +313,7 @@
                 daily_order_number:0,
                 system_settings: this.settings,
                 userRole: [],
-                isURY_Barista: false,
-                isURY_Kitchen: false,
-                isURY_Kitchen_Control: false,
-                isURY_Restaurant_Manager: false,
-                displayProductionUnits: [],
+                production_units_roles_map: null,
             };
         },
         setup() {
@@ -353,27 +349,6 @@
                     .get("ury.ury_pos.api.get_user_roles", this.loggeduser)
                     .then((result) => {
                         this.userRole = result.message;
-                        this.isURY_Barista = this.userRole.includes("URY Barista");
-                        this.isURY_Kitchen = this.userRole.includes("URY Kitchen");
-                        this.isURY_Kitchen_Control = this.userRole.includes("URY Kitchen control");
-                        this.isURY_Restaurant_Manager = this.userRole.includes("URY Restaurant Manager");
-                        if(this.isURY_Barista) {
-                            this.displayProductionUnits.push('عصائر');
-                        }
-                        if(this.isURY_Kitchen) {
-                            this.displayProductionUnits.push('وجبات');
-                        }
-                        if(this.isURY_Kitchen_Control) {
-                            this.displayProductionUnits.push('وجبات');
-                            this.displayProductionUnits.push('عصائر');
-                        }
-                        if(this.isURY_Restaurant_Manager) {
-                            this.displayProductionUnits.push('وجبات');
-                            this.displayProductionUnits.push('عصائر');
-                        }
-                        if(!this.isURY_Barista && !this.isURY_Kitchen && !this.isURY_Kitchen_Control && !this.isURY_Restaurant_Manager) {
-                            this.displayProductionUnits = []
-                        }
                     });
             },
             fetchKOT() {
@@ -388,11 +363,13 @@
                                 this.kot_alert_time = result.message.kot_alert_time;
                                 this.audio_alert = result.message.audio_alert;
                                 this.daily_order_number = result.message.daily_order_number;
+                                this.production_units_roles_map = result.message.production_units_roles_map;
 
                                 // this.kot_channel = `kot_update_${this.branch}_${this.production}`;
-                                this.kot_channel_barista = `kot_update_${this.custom_branch_in_english}_${'barista'}`;
-                                this.kot_channel_kitchen = `kot_update_${this.custom_branch_in_english}_${'kitchen'}`;
-                                this.kot_channel_fetch = `kot_update_${this.custom_branch_in_english}`;
+                                // this.kot_channel_barista = `kot_update_${this.custom_branch_in_english}_${'barista'}`;
+                                // this.kot_channel_kitchen = `kot_update_${this.custom_branch_in_english}_${'kitchen'}`;
+                                this.kot_channel = `kot_update_${this.custom_branch_in_english}`;
+                                this.kot_channel_fetch = `kot_update_${this.custom_branch_in_english}_fetch`;
 
                                 this.kot = result.message.KOT;
                                 this.updateQtyColorTable();
@@ -738,37 +715,17 @@
                         if (this.audio_alert === 1) {
                             this.showAudioAlertMessage = true;
                         }
-                        // socket.on(this.kot_channel, (doc) => {
-                        //     if (this.audio_alert === 1) {
-                        //         this.playAlertSound(doc.audio_file);
-                        //     }
-                        //     let kottime = localStorage.getItem("kot_time");
-                        //     if (doc.last_kot_time !== null) {
-                        //         if (doc.last_kot_time !== kottime) {
-                        //             this.fetchKOT().then(() => {
-                        //             this.masonryLoading();
-                        //             });
-                        //         }
-                        //     }
-                        //     this.kot.unshift(doc.kot);
-                        //     this.masonryLoading();
-                        //     this.updateQtyColorTable();
-                        //     this.updateTimeRemaining();
-                        //     setTimeout(()=>{
-                        //         if (doc.kot.type === "Cancelled"){
-                        //             this.fetchKOT().then(() => {
-                        //             this.masonryLoading();
-                        //             });
-                        //         }
-                        //     },1500)
-                        //     localStorage.setItem("kot_time", doc.kot.time);
-                        // });
-                        if(this.isURY_Barista || this.isURY_Kitchen_Control || this.isURY_Restaurant_Manager) {
-                            socket.on(this.kot_channel_barista, (doc) => {
+                        socket.on(this.kot_channel, (doc) => {
+                            if (
+                                this.userRole.includes(doc.production_units_roles_map[doc.kot.production]['role_responsible_for_updating_kot_items_status']) ||
+                                this.userRole.includes(doc.production_units_roles_map[doc.kot.production]['role_responsible_for_confirming_cancelled_kot']) ||
+                                this.userRole.includes(doc.production_units_roles_map[doc.kot.production]['role_responsible_for_serving_kot']) ||
+                                this.userRole.includes("URY Restaurant Manager")
+                            ) {
                                 if (this.audio_alert === 1) {
                                     this.playAlertSound(doc.audio_file);
                                 }
-                                let kottime = localStorage.getItem("barista_kot_time");
+                                let kottime = localStorage.getItem("kot_time");
                                 if (doc.last_kot_time !== null) {
                                     if (doc.last_kot_time !== kottime) {
                                         this.fetchKOT().then(() => {
@@ -787,43 +744,14 @@
                                         });
                                     }
                                 },1500)
-                                localStorage.setItem("barista_kot_time", doc.kot.time);
-                            });
-                        }
-                        if(this.isURY_Kitchen || this.isURY_Kitchen_Control || this.isURY_Restaurant_Manager) {
-                            socket.on(this.kot_channel_kitchen, (doc) => {
-                                if (this.audio_alert === 1) {
-                                    this.playAlertSound(doc.audio_file);
-                                }
-                                let kottime = localStorage.getItem("kitchen_kot_time");
-                                if (doc.last_kot_time !== null) {
-                                    if (doc.last_kot_time !== kottime) {
-                                        this.fetchKOT().then(() => {
-                                            this.masonryLoading();
-                                        });
-                                    }
-                                }
-                                this.kot.unshift(doc.kot);
-                                this.masonryLoading();
-                                this.updateQtyColorTable();
-                                this.updateTimeRemaining();
-                                setTimeout(()=>{
-                                    if (doc.kot.type === "Cancelled"){
-                                        this.fetchKOT().then(() => {
-                                            this.masonryLoading();
-                                        });
-                                    }
-                                },1500)
-                                localStorage.setItem("kitchen_kot_time", doc.kot.time);
-                            });
-                        }
-
-                        if(this.isURY_Barista || this.isURY_Kitchen || this.isURY_Kitchen_Control || this.isURY_Restaurant_Manager) {
-                            socket.on(this.kot_channel_fetch, (event) => {
-                                console.log('event', event);
-                                this.fetchKOT();
-                            });
-                        }                        
+                                localStorage.setItem("kot_time", doc.kot.time);
+                            }
+                        });
+                        
+                        socket.on(this.kot_channel_fetch, (event) => {
+                            console.log('event', event);
+                            this.fetchKOT();
+                        });
                     });
                 })
             .catch((error) => {
@@ -841,19 +769,6 @@
             sortedKotItems() {
                 return (kot) => {
                     return kot.kot_items.sort((a, b) => a.serve_priority - b.serve_priority);
-                };
-            },
-            shouldDisplayKot() {
-                return (kot_item) => {
-                    return (
-                        (
-                            (this.isURY_Barista && this.displayProductionUnits.includes(kot_item.production)) ||
-                            (this.isURY_Kitchen && this.displayProductionUnits.includes(kot_item.production)) ||
-                            (this.isURY_Kitchen_Control && this.displayProductionUnits.includes(kot_item.production)) ||
-                            (this.isURY_Restaurant_Manager && this.displayProductionUnits.includes(kot_item.production))
-                        ) &&
-                        !kot_item.showDiv
-                    );
                 };
             },
         },

@@ -92,20 +92,35 @@ class URYKOT(Document):
         production = self.production
         production_in_english = frappe.db.get_value("URY Production Unit", production, 'production_in_english')
 
+        production_units_roles_map = {}
+        production_units = frappe.get_all("URY Production Unit", fields=["name", 
+            "role_responsible_for_updating_kot_items_status", 
+            "role_responsible_for_confirming_cancelled_kot", 
+            "role_responsible_for_serving_kot"])
+            
+        for production_unit in production_units:
+            production_units_roles_map[production_unit.name] = {
+                'role_responsible_for_updating_kot_items_status': production_unit.role_responsible_for_updating_kot_items_status,
+                'role_responsible_for_confirming_cancelled_kot': production_unit.role_responsible_for_confirming_cancelled_kot,
+                'role_responsible_for_serving_kot': production_unit.role_responsible_for_serving_kot,
+            }
+
         kotjson = json.loads(frappe.as_json(self))
         audio_file = frappe.db.get_value(
             "POS Profile", self.pos_profile, "custom_kot_alert_sound"
         )
 
         # cache_key = "{}_{}_last_kot_time".format(currentBranch, production)
-        cache_key = "{}_{}_last_kot_time".format(custom_branch_in_english, production_in_english)
+        # cache_key = "{}_{}_last_kot_time".format(custom_branch_in_english, production_in_english)
+        cache_key = "{}_last_kot_time".format(custom_branch_in_english)
         time = frappe.cache().get_value(cache_key)
 
         # kot_channel = "{}_{}_{}".format("kot_update", currentBranch, production)
-        kot_channel = "{}_{}_{}".format("kot_update", custom_branch_in_english, production_in_english)
+        # kot_channel = "{}_{}_{}".format("kot_update", custom_branch_in_english, production_in_english)
+        kot_channel = "{}_{}".format("kot_update", custom_branch_in_english)
         frappe.publish_realtime(
             kot_channel,
-            {"kot": kotjson, "audio_file": audio_file, "last_kot_time": time},
+            {"kot": kotjson, "audio_file": audio_file, "last_kot_time": time, "production_units_roles_map": production_units_roles_map},
         )
         frappe.cache().set_value(cache_key, self.time)
 

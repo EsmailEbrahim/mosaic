@@ -18,7 +18,7 @@ def send_fetch_table_order_status_to_pos(branch, user, event):
 
 def send_fetch_kot_socket_to_mosaic(branch, event):
     custom_branch_in_english = frappe.get_cached_value("Branch", branch, 'custom_branch_in_english')
-    kot_channel = "{}_{}".format("kot_update", custom_branch_in_english)
+    kot_channel = "{}_{}_fetch".format("kot_update", custom_branch_in_english)
     frappe.publish_realtime(
         kot_channel,
         {"event": event},
@@ -74,6 +74,32 @@ def kot_list():
     branch = getBranch()
     custom_branch_in_english = frappe.db.get_value("Branch", branch, 'custom_branch_in_english')
 
+    production_units_for_current_user = []
+    production_units_roles_map = {}
+    production_units = frappe.get_all("URY Production Unit", fields=["name", 
+        "role_responsible_for_updating_kot_items_status", 
+        "role_responsible_for_confirming_cancelled_kot", 
+        "role_responsible_for_serving_kot"])
+    
+    user_roles = frappe.get_roles(frappe.session.user)
+    is_restaurant_manager = "URY Restaurant Manager" in user_roles
+
+    if not is_restaurant_manager:
+        for production_unit in production_units:
+            production_units_roles_map[production_unit.name] = {
+                'role_responsible_for_updating_kot_items_status': production_unit.role_responsible_for_updating_kot_items_status,
+                'role_responsible_for_confirming_cancelled_kot': production_unit.role_responsible_for_confirming_cancelled_kot,
+                'role_responsible_for_serving_kot': production_unit.role_responsible_for_serving_kot,
+            }
+
+            if any(role in user_roles for role in [
+                production_unit.role_responsible_for_updating_kot_items_status,
+                production_unit.role_responsible_for_confirming_cancelled_kot,
+                production_unit.role_responsible_for_serving_kot
+            ]):
+                if production_unit.name not in production_units_for_current_user:
+                    production_units_for_current_user.append(production_unit.name)
+
     kot_alert_time = frappe.db.get_value(
         "POS Profile", {"branch": branch}, "custom_kot_warning_time"
     )
@@ -84,26 +110,32 @@ def kot_list():
     audio_alert = frappe.db.get_value(
         "POS Profile", {"branch": branch}, "custom_kot_alert"
     )
+
+    kot_filters = {
+        "order_status": "Ready For Prepare",
+        "branch": branch,
+        "type": [
+            "in",
+            [
+                "New Order",
+                "Order Modified",
+                "Duplicate",
+                "Cancelled",
+                "Partially cancelled",
+            ],
+        ],
+        "docstatus": 1,
+        "verified": 0,
+        "creation": (">=", three_hours_ago),
+    }
+
+    if not is_restaurant_manager:
+        kot_filters["production"] = ["in", production_units_for_current_user]
+
     kotList = frappe.get_list(
         "URY KOT",
         fields=["name"],
-        filters={
-            "order_status": "Ready For Prepare",
-            "branch": branch,
-            "type": [
-                "in",
-                [
-                    "New Order",
-                    "Order Modified",
-                    "Duplicate",
-                    "Cancelled",
-                    "Partially cancelled",
-                ],
-            ],
-            "docstatus": 1,
-            "verified": 0,
-            "creation": (">=", three_hours_ago),
-        },
+        filters=kot_filters,
         order_by="creation desc",
     )
     KOT = []
@@ -117,6 +149,7 @@ def kot_list():
         "custom_branch_in_english": custom_branch_in_english,
         "kot_alert_time": kot_alert_time,
         "audio_alert": audio_alert,
-        "daily_order_number":daily_order_number
+        "daily_order_number":daily_order_number,
+        "production_units_roles_map": production_units_roles_map,
     }
 
