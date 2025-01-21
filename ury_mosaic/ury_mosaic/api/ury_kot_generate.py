@@ -96,7 +96,8 @@ def get_all_production_item_groups(branch):
         for production in productions:
             productionItemGroupslist = frappe.get_all(
                 "URY Production Item Groups",
-                fields=["item_group"],
+                # fields=["item_group"],
+                fields=["ury_item_group as item_group"],
                 filters={
                     "parent": production.name,
                     "parenttype": "URY Production Unit",
@@ -123,6 +124,7 @@ def process_items_for_kot(
 ):
     kot_items = create_order_items(items)
     pos_profile = frappe.get_doc("POS Profile", pos_profile_id)
+    restaurant_active_menu = frappe.db.get_value("URY Restaurant", pos_profile.restaurant, "active_menu")
     productions = frappe.db.get_all(
         "URY Production Unit", filters={"branch": pos_profile.branch}, fields=["name"]
     )
@@ -132,7 +134,17 @@ def process_items_for_kot(
         
         # Iterate through each item and check if item group belongs to a production unit
         for item in kot_items:
-            item_group = frappe.db.get_value("Item", item["item_code"], "item_group")
+            # item_group = frappe.db.get_value("Item", item["item_code"], "item_group")
+            item_group = frappe.db.get_value(
+                "URY Menu Item",
+                {
+                    "item": item["item_code"],
+                    "parent": restaurant_active_menu,
+                    "parenttype": 'URY Menu',
+                    "parentfield": 'items'
+                },
+                "ury_item_group as item_group"
+            )
             item_code = item["item_code"]
             if item_group not in all_production_item_groups:
                 frappe.msgprint(
@@ -141,7 +153,8 @@ def process_items_for_kot(
         for production in productions:
             productionItemGroupslist = frappe.get_all(
                 "URY Production Item Groups",
-                fields=["item_group"],
+                # fields=["item_group"],
+                fields=["ury_item_group as item_group"],
                 filters={
                     "parent": production.name,
                     "parenttype": "URY Production Unit",
@@ -154,7 +167,8 @@ def process_items_for_kot(
             production_items = [
                 item
                 for item in kot_items
-                if frappe.db.get_value("Item", item["item_code"], "item_group")
+                # if frappe.db.get_value("Item", item["item_code"], "item_group")
+                if frappe.db.get_value("URY Menu Item", {"item": item["item_code"], "parent": restaurant_active_menu, "parenttype": 'URY Menu', "parentfield": 'items'}, "ury_item_group as item_group")
                 in productionItemGroups
             ]
 
@@ -202,6 +216,7 @@ def process_items_for_cancel_kot(
 
     kot_items = create_order_items(items)
     pos_profile = frappe.get_doc("POS Profile", pos_profile_id)
+    restaurant_active_menu = frappe.db.get_value("URY Restaurant", pos_profile.restaurant, "active_menu")
     productions = frappe.db.get_all(
         "URY Production Unit", filters={"branch": pos_profile.branch}, fields=["name"]
     )
@@ -209,12 +224,14 @@ def process_items_for_cancel_kot(
     for production in productions:
         productionDoc = frappe.get_doc("URY Production Unit", production.name)
         productionItemGroups = [
-            item_group.item_group for item_group in productionDoc.item_groups
+            # item_group.item_group for item_group in productionDoc.item_groups
+            item_group.ury_item_group for item_group in productionDoc.item_groups
         ]
         production_items = [
             item
             for item in kot_items
-            if frappe.get_doc("Item", item["item_code"]).item_group
+            # if frappe.get_doc("Item", item["item_code"]).item_group
+            if frappe.db.get_value("URY Menu Item", {"item": item["item_code"], "parent": restaurant_active_menu, "parenttype": 'URY Menu', "parentfield": 'items'}, "ury_item_group as item_group")
             in productionItemGroups
         ]
 
