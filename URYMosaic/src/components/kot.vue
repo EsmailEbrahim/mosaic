@@ -97,8 +97,9 @@
                                         {{ kot.production }}
                                     </span>
                                     <br>
+                                    <!-- v-if="kot.tableortakeaway !== 'Takeaway'" -->
                                     <span
-                                        v-if="kot.tableortakeaway !== 'Takeaway'"
+                                        v-if="!kot.table_takeaway"
                                         class="text-sm font-medium text-[#6B7280]"
                                     >الطاولة:
                                     </span>
@@ -465,7 +466,8 @@
                     kot.tableortakeaway = "Takeaway";
                 } else {
                     if (table_takeaway == 1) {
-                        kot.tableortakeaway = "Takeaway";
+                        // kot.tableortakeaway = "Takeaway";
+                        kot.tableortakeaway = restaurant_table;
                     } else {
                         kot.tableortakeaway = restaurant_table;
                     }
