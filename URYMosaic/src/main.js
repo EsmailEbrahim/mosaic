@@ -18,6 +18,23 @@ app.use(router);
 app.use(resourceManager);
 app.use(pinia);
 
+// Translation
+import { createI18n } from 'vue-i18n';
+import ar from './locales/ar.json';
+import en from './locales/en.json';
+import aren from './locales/aren.json';
+
+const i18n = createI18n({
+	locale: localStorage.getItem('lang') || 'ar',
+	fallbackLocale: 'ar',
+	messages: {
+		ar,
+		en,
+		aren,
+	}
+});
+app.use(i18n);
+
 // Global Properties,
 // components can inject this
 app.provide("$auth", auth);

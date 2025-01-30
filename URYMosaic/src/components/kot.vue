@@ -70,9 +70,9 @@
                             >
                                 {{
                                     (kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled' && userRole.includes(production_units_roles_map[kot.production]['role_responsible_for_serving_kot']))
-                                    ? "تقديم"
+                                    ? $t('serve')
                                     : (kot.type === 'Cancelled' || kot.type === 'Partially cancelled') && userRole.includes(production_units_roles_map[kot.production]['role_responsible_for_confirming_cancelled_kot'])
-                                    ? "تأكيد"
+                                    ? $t('confirm')
                                     : ""
                                 }}
                             </button>
@@ -91,7 +91,7 @@
                                 <div class="text-sm w-60">
                                     <span
                                         class="text-sm font-medium text-[#6B7280]"
-                                    >وحدة المطبخ:
+                                    >{{ $t('kitchenUnit') }}:
                                     </span>
                                     <span class="text-black-500 mr-2 font-semibold">
                                         {{ kot.production }}
@@ -101,7 +101,7 @@
                                     <span
                                         v-if="!kot.table_takeaway"
                                         class="text-sm font-medium text-[#6B7280]"
-                                    >الطاولة:
+                                    >{{ $t('table') }}:
                                     </span>
                                     <span class="text-black-500 font-semibold">
                                         {{ kot.tableortakeaway }}
@@ -120,7 +120,7 @@
                                         {{ kot.aggregator_id }}
                                     </span>
                                     <br v-if="kot.is_aggregator"/>
-                                    <span class="text-sm font-medium text-[#6B7280]">الطلب:</span>
+                                    <span class="text-sm font-medium text-[#6B7280]">{{ $t('order') }}:</span>
                                     <span class="text-black-500 mr-2 font-semibold">
                                         {{ this.daily_order_number ? kot.order_no : kot.invoice.slice(-4) }}
                                     </span>
@@ -141,8 +141,8 @@
                                     class="font-inter font-semibold text-2xl leading-10"
                                 >
                                     <!-- :class="kot.timecolor" -->
-                                    {{ kot.timeRemaining }}<span class="text-sm">د</span>
-                                    <span class="text-sm text-gray-500">/ {{ kot.preparation_time }}د</span>
+                                    {{ kot.timeRemaining }}<span class="text-sm">{{ $t('m') }}</span>
+                                    <span class="text-sm text-gray-500">/ {{ kot.preparation_time }}{{ $t('m') }}</span>
                                 </div>
                             </div>
                             <div
@@ -174,7 +174,11 @@
                                     >
                                     <div>
                                         <span class="mr-2 text-black-100">
-                                            {{ kotitem.item_name }} - {{ kotitem.item }}
+                                            {{
+                                                $i18n.locale === 'ar' ? kotitem.item_name :
+                                                    $i18n.locale === 'en' ? kotitem.item :
+                                                        $i18n.locale === 'aren' ? kotitem.item_name + ' - ' + kotitem.item : kotitem.item_name
+                                            }}
                                             <span v-show="kotitem.indicate_course" class="text-sm text-gray-500 mr-1">
                                                 ( {{kotitem.course}} )
                                             </span>
@@ -215,7 +219,7 @@
         v-if="showAudioAlertMessage"
         class="absolute top-1 left-1/2 transform -translate-x-1/2 p-2 font-bold text-2xl text-red-500 text-center"
     >
-        تم تعطيل الإشعارات الصوتية. انقر في أي مكان لتمكينها.
+        {{ $t('alertSound') }}
     </div>
 
     <div

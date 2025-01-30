@@ -56,6 +56,27 @@
   resolved "https://registry.npmjs.org/@floating-ui/utils/-/utils-0.1.4.tgz"
   integrity sha512-qprfWkn82Iw821mcKofJ5Pk9wgioHicxcQMxx+5zt5GSKoqdWvgG5AxVmpmUUjzTLPVSH5auBrhI93Deayn/DA==
 
+"@intlify/core-base@11.0.1":
+  version "11.0.1"
+  resolved "https://registry.npmjs.org/@intlify/core-base/-/core-base-11.0.1.tgz"
+  integrity sha512-NAmhw1l/llM0HZRpagR/ChJTNymW4ll6/4EDSJML5c8L5Hl/+k6UyF8EIgE6DeHpfheQujkSRngauViHqq6jJQ==
+  dependencies:
+    "@intlify/message-compiler" "11.0.1"
+    "@intlify/shared" "11.0.1"
+
+"@intlify/message-compiler@11.0.1":
+  version "11.0.1"
+  resolved "https://registry.npmjs.org/@intlify/message-compiler/-/message-compiler-11.0.1.tgz"
+  integrity sha512-5RFH8x+Mn3mbjcHXnb6KCXGiczBdiQkWkv99iiA0JpKrNuTAQeW59Pjq/uObMB0eR0shnKYGTkIJxum+DbL3sw==
+  dependencies:
+    "@intlify/shared" "11.0.1"
+    source-map-js "^1.0.2"
+
+"@intlify/shared@11.0.1":
+  version "11.0.1"
+  resolved "https://registry.npmjs.org/@intlify/shared/-/shared-11.0.1.tgz"
+  integrity sha512-lH164+aDDptHZ3dBDbIhRa1dOPQUp+83iugpc+1upTOWCnwyC1PVis6rSWNMMJ8VQxvtHQB9JMib48K55y0PvQ==
+
 "@jridgewell/gen-mapping@^0.3.2":
   version "0.3.3"
   resolved "https://registry.npmjs.org/@jridgewell/gen-mapping/-/gen-mapping-0.3.3.tgz"
@@ -961,7 +982,7 @@ socket.io-parser@~4.2.4:
     "@socket.io/component-emitter" "~3.1.0"
     debug "~4.3.1"
 
-source-map-js@^1.2.0, source-map-js@^1.2.1:
+source-map-js@^1.0.2, source-map-js@^1.2.0, source-map-js@^1.2.1:
   version "1.2.1"
   resolved "https://registry.npmjs.org/source-map-js/-/source-map-js-1.2.1.tgz"
   integrity sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==
@@ -1071,6 +1092,15 @@ vue-demi@*, vue-demi@^0.14.10:
   version "0.14.10"
   resolved "https://registry.npmjs.org/vue-demi/-/vue-demi-0.14.10.tgz"
   integrity sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==
+
+vue-i18n@^11.0.1:
+  version "11.0.1"
+  resolved "https://registry.npmjs.org/vue-i18n/-/vue-i18n-11.0.1.tgz"
+  integrity sha512-pWAT8CusK8q9/EpN7V3oxwHwxWm6+Kp2PeTZmRGvdZTkUzMQDpbbmHp0TwQ8xw04XKm23cr6B4GL72y3W8Yekg==
+  dependencies:
+    "@intlify/core-base" "11.0.1"
+    "@intlify/shared" "11.0.1"
+    "@vue/devtools-api" "^6.5.0"
 
 vue-resize@^2.0.0-alpha.1:
   version "2.0.0-alpha.1"

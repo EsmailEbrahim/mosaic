@@ -1,0 +1,9 @@
+{
+    "serve": "Serve",
+    "confirm": "Confirm",
+    "kitchenUnit": "kitchen Unit",
+    "table": "Table",
+    "order": "Order",
+    "m": "m",
+    "alertSound": "Sound notifications are disabled. Click anywhere to enable them."
+}
