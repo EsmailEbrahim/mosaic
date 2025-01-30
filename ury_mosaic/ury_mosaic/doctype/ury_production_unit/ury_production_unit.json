@@ -8,22 +8,28 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
+  "general_information_section",
   "production",
   "production_in_english",
   "kitchen_unit_group",
+  "column_break_zduw",
   "pos_profile",
   "branch",
   "warehouse",
+  "section_break_oqcr",
   "item_groups",
+  "roles_information_section",
+  "kitchen_roles_column",
   "role_responsible_for_updating_kot_items_status",
   "role_responsible_for_confirming_cancelled_kot",
+  "column_break_wwwb",
   "role_responsible_for_serving_kot",
-  "printer_info_section",
-  "printer_settings",
   "section_break_yszw",
   "silent_print_format",
   "column_break_kxmw",
-  "silent_print_type"
+  "silent_print_type",
+  "printer_info_section",
+  "printer_settings"
  ],
  "fields": [
   {
@@ -57,13 +63,14 @@
   {
    "fieldname": "item_groups",
    "fieldtype": "Table",
-   "label": "Item Groups",
+   "label": "Print Groups",
    "options": "URY Production Item Groups"
   },
   {
    "collapsible": 1,
    "fieldname": "printer_info_section",
    "fieldtype": "Section Break",
+   "hidden": 1,
    "label": "Printer info"
   },
   {
@@ -73,14 +80,15 @@
    "options": "URY Printer Settings"
   },
   {
-   "description": "One word without whitespace. (For Backend)",
+   "description": "One word without whitespace. (For Backend Purpose)",
    "fieldname": "production_in_english",
    "fieldtype": "Data",
    "label": "Production in English"
   },
   {
    "fieldname": "section_break_yszw",
-   "fieldtype": "Section Break"
+   "fieldtype": "Section Break",
+   "label": "Printer Information"
   },
   {
    "fieldname": "silent_print_format",
@@ -93,6 +101,7 @@
    "fieldtype": "Column Break"
   },
   {
+   "description": "Printer Name in WHB app.",
    "fieldname": "silent_print_type",
    "fieldtype": "Data",
    "label": "Silent Print Type"
@@ -121,11 +130,40 @@
    "in_list_view": 1,
    "label": "Kitchen Unit Group",
    "options": "URY Kitchen Unit Group"
+  },
+  {
+   "fieldname": "column_break_zduw",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "section_break_oqcr",
+   "fieldtype": "Section Break",
+   "label": "Grouping Information"
+  },
+  {
+   "fieldname": "roles_information_section",
+   "fieldtype": "Section Break",
+   "label": "Roles Information"
+  },
+  {
+   "fieldname": "general_information_section",
+   "fieldtype": "Section Break",
+   "label": "General Information"
+  },
+  {
+   "fieldname": "column_break_wwwb",
+   "fieldtype": "Column Break",
+   "label": "Kitchen Controller Roles"
+  },
+  {
+   "fieldname": "kitchen_roles_column",
+   "fieldtype": "Column Break",
+   "label": "Kitchen Roles"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2025-01-19 04:50:42.404157",
+ "modified": "2025-01-30 19:30:11.888732",
  "modified_by": "Administrator",
  "module": "URY Mosaic",
  "name": "URY Production Unit",
