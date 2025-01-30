@@ -174,7 +174,7 @@
                                     >
                                     <div>
                                         <span class="mr-2 text-black-100">
-                                            {{ kotitem.item_name }}
+                                            {{ kotitem.item_name }} - {{ kotitem.item }}
                                             <span v-show="kotitem.indicate_course" class="text-sm text-gray-500 mr-1">
                                                 ( {{kotitem.course}} )
                                             </span>
