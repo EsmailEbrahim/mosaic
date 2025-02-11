@@ -19,7 +19,7 @@ frappe.ui.form.on("POS Invoice", {
         qty: new_item.qty,
         item_name: new_item.item_name,
         name: new_item.name,
-        comments: "",
+        comment: "",
       };
       new_items.push(json_newitem);
     });

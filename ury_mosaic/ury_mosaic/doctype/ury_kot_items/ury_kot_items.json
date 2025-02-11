@@ -14,7 +14,7 @@
   "preparation_time",
   "quantity",
   "cancelled_qty",
-  "comments",
+  "comment",
   "course",
   "serve_priority",
   "parallel_preparation",
@@ -50,9 +50,9 @@
    "read_only": 1
   },
   {
-   "fieldname": "comments",
+   "fieldname": "comment",
    "fieldtype": "Data",
-   "label": "Comments"
+   "label": "Comment"
   },
   {
    "fieldname": "course",

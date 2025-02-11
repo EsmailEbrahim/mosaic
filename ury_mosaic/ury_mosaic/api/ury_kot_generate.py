@@ -19,7 +19,7 @@ def create_order_items(items):
             "item_code": item.get("item", item.get("item_code")),
             "qty": item["qty"],
             "item_name": item["item_name"],
-            "comments": item.get("comment", item.get("comments", "")),
+            "comment": item.get("comment", item.get("comment", "")),
             "preparation_time": item.get("preparation_time"),
             "parallel_preparation": item.get("parallel_preparation"),
         }
@@ -77,7 +77,7 @@ def create_kot_doc(
                 "item": item["item_code"],
                 "item_name": item["item_name"],
                 "quantity": item["qty"],
-                "comments": item["comments"],
+                "comment": item["comment"],
                 "course":course,
                 "preparation_time":item["preparation_time"],
                 "parallel_preparation":item["parallel_preparation"],
@@ -330,7 +330,7 @@ def create_cancel_kot_doc(
                         "item_name": cancelItem["item_name"],
                         "cancelled_qty": abs(int(cancelItem["qty"])),
                         "quantity": item["qty"],
-                        "comments": cancelItem["comments"],
+                        "comment": cancelItem["comment"],
                         "course":course
                     },
                 )

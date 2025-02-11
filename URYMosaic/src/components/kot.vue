@@ -121,8 +121,9 @@
                                     </span>
                                     <br v-if="kot.is_aggregator"/>
                                     <span class="text-sm font-medium text-[#6B7280]">{{ $t('order') }}:</span>
-                                    <span class="text-black-500 mr-2 font-semibold">
-                                        {{ this.daily_order_number ? kot.order_no : kot.invoice.slice(-4) }}
+                                    <span class="text-black-500 mr-2 font-semibold text-xs">
+                                        <!-- {{ this.daily_order_number ? kot.order_no : kot.invoice.slice(-4) }} -->
+                                        {{ this.daily_order_number ? kot.order_no : kot.invoice }}
                                     </span>
                                     <span
                                         class="text-black-500 mr-2 font-semibold"
@@ -199,10 +200,10 @@
                                 </div>
                                 <div>
                                     <p
-                                        v-show="kotitem.comments"
+                                        v-show="kotitem.comment"
                                         class="mr-2 text-[#6B7280] font-medium"
                                     >
-                                        {{ kotitem.comments }}
+                                        {{ kotitem.comment }}
                                     </p>
                                     <hr class="my-1 border-gray-200 mt-2" />
                                 </div>
