@@ -90,13 +90,17 @@
                             >
                                 <div class="text-sm w-60">
                                     <span
+                                        v-if="!is_role_responsible_for_serving_kot"
                                         class="text-sm font-medium text-[#6B7280]"
                                     >{{ $t('kitchenUnit') }}:
                                     </span>
-                                    <span class="text-black-500 mr-2 font-semibold">
+                                    <span
+                                        v-if="!is_role_responsible_for_serving_kot"
+                                        class="text-black-500 mr-2 font-semibold"
+                                    >
                                         {{ kot.production }}
                                     </span>
-                                    <br>
+                                    <br v-if="!is_role_responsible_for_serving_kot">
                                     <!-- v-if="kot.tableortakeaway !== 'Takeaway'" -->
                                     <span
                                         v-if="!kot.table_takeaway"
@@ -125,7 +129,7 @@
                                         <!-- {{ this.daily_order_number ? kot.order_no : kot.invoice.slice(-4) }} -->
                                         {{ this.daily_order_number ? kot.order_no : kot.invoice }}
                                     </span>
-                                    <span
+                                    <!-- <span
                                         class="text-black-500 mr-2 font-semibold"
                                         v-if="
                                             kot.type === 'Partially cancelled' ||
@@ -133,11 +137,15 @@
                                         "
                                     >
                                         ( {{ kot.type }} )</span
-                                    >
+                                    > -->
                                 </div>
-                                <div :class="[
-                                        (kot.timeRemaining >= (kot.preparation_time - 1) && kot.type !== 'Cancelled' && kot.type !== 'Partially cancelled')
-                                        ? 'text-[#DC0000]' : 'text-black'
+                                <div
+                                    :class="[
+                                        (kot.timeRemaining >= (kot.preparation_time - 1) &&
+                                        kot.type !== 'Cancelled' &&
+                                        kot.type !== 'Partially cancelled') ?
+                                        'text-[#DC0000]' :
+                                        'text-black'
                                     ]"
                                     class="font-inter font-semibold text-2xl leading-10"
                                 >
@@ -152,8 +160,8 @@
                             >
                                 ( Duplicate KOT ( CHECK WITH CAPTAIN ) )
                             </div>
-                            <div v-show="kot.comments" class="text-[#6B7280] font-medium">
-                                ( {{ kot.comments }} )
+                            <div v-show="kot.comments" class="text-[#6B7280] font-medium border-r-2 border-l-2 pr-1 border-[#6B7280] bg-[#6B7280] bg-opacity-10 rounded">
+                                {{ kot.comments }}
                             </div>
                             <div></div>
                             <div class="mt-5">
@@ -174,25 +182,65 @@
                                         class="flex font-semibold justify-between items-center hover:cursor-pointer"
                                     >
                                     <div>
-                                        <span class="mr-2 text-black-100">
-                                            {{
+                                        <span class="text-black-100">
+                                            - {{
                                                 $i18n.locale === 'ar' ? kotitem.item_name :
                                                     $i18n.locale === 'en' ? kotitem.item :
                                                         $i18n.locale === 'aren' ? kotitem.item_name + ' - ' + kotitem.item : kotitem.item_name
                                             }}
-                                            <span v-show="kotitem.indicate_course" class="text-sm text-gray-500 mr-1">
+                                            <span v-if="kotitem.indicate_course" class="text-sm text-gray-500 mr-1">
                                                 ( {{kotitem.course}} )
                                             </span>
-                                        </span
-                                        ><br />
+                                        </span>
+                                        <br />
                                         <span
-                                            class="mr-2 text-black-100"
+                                            class="mr-2 text-gray-700 text-sm"
                                             v-if="
-                                                kot.type === 'Partially cancelled' ||
-                                                kot.type === 'Cancelled'"
+                                                is_role_responsible_for_serving_kot &&
+                                                    (kotitem?.kot_type === 'Partially cancelled' ||
+                                                    kotitem?.kot_type === 'Cancelled')"
                                         >
-                                            [الكمية السابقة = {{ kotitem.quantity }}]</span
+                                            [الكمية السابقة = {{ kotitem.quantity }}]
+                                            <br />
+                                            <span
+                                                class="mr-2 text-gray-500"
+                                                style="font-size: 0.70rem; line-height: 0.75rem;"
+                                            >
+                                                ({{ kotitem.kot_production + " | " + $t(kotitem.kot_type) }})
+                                            </span>
+                                        </span>
+                                        <span
+                                            class="mr-2 text-gray-700 text-sm"
+                                            v-else-if="
+                                                !is_role_responsible_for_serving_kot &&
+                                                    (kot.type === 'Partially cancelled' ||
+                                                    kot.type === 'Cancelled')"
                                         >
+                                            [الكمية السابقة = {{ kotitem.quantity }}]
+                                        </span>
+                                        <span
+                                            class="mr-2 text-gray-500 flex items-center"
+                                            v-if="is_role_responsible_for_serving_kot &&
+                                                (kotitem?.kot_type !== 'Partially cancelled' &&
+                                                kotitem?.kot_type !== 'Cancelled')"
+                                            style="font-size: 0.70rem; line-height: 0.75rem;"
+                                        >
+                                            ({{ kotitem.kot_production + " | " + $t(kotitem.kot_type) }})
+                                            <div
+                                                v-if="is_role_responsible_for_serving_kot"
+                                                :class="[
+                                                    (kotitem?.timeRemaining >= (kotitem?.preparation_time - 1) &&
+                                                    kotitem?.kot_type !== 'Cancelled' &&
+                                                    kotitem?.kot_type !== 'Partially cancelled') ?
+                                                    'text-[#DC0000]' :
+                                                    'text-black'
+                                                ]"
+                                                class="text-sm mr-1"
+                                            >
+                                                {{ kotitem?.timeRemaining }}<span class="text-xs">{{ $t('m') }}</span>
+                                                <span class="text-xs text-gray-500">/ {{ kotitem?.preparation_time }}{{ $t('m') }}</span>
+                                            </div>
+                                        </span>
                                     </div>
                                     <div>
                                         <span class="mr-2 text-black-100">{{ kotitem.qty }}</span>
@@ -201,11 +249,11 @@
                                 <div>
                                     <p
                                         v-show="kotitem.comment"
-                                        class="mr-2 text-[#6B7280] font-medium"
+                                        class="mr-2 text-[#6B7280] font-medium border-r-2 pr-1 border-[#6B7280] bg-[#6B7280] bg-opacity-10 rounded"
                                     >
                                         {{ kotitem.comment }}
                                     </p>
-                                    <hr class="my-1 border-gray-200 mt-2" />
+                                    <hr class="my-1 border-gray-600 mt-2" />
                                 </div>
                             </div>
                         </div>
@@ -320,6 +368,7 @@
                 system_settings: this.settings,
                 userRole: [],
                 production_units_roles_map: null,
+                is_role_responsible_for_serving_kot: false,
             };
         },
         setup() {
@@ -377,6 +426,8 @@
                                 this.kot_channel = `kot_update_${this.custom_branch_in_english}`;
                                 this.kot_channel_fetch = `kot_update_${this.custom_branch_in_english}_fetch`;
 
+                                this.is_role_responsible_for_serving_kot = result.message.is_role_responsible_for_serving_kot;
+                                
                                 this.kot = result.message.KOT;
                                 this.updateQtyColorTable();
                                 this.updateTimeRemaining();
@@ -418,11 +469,22 @@
                 const now = new Date();
                 this.currentTime = now.toLocaleTimeString();
 
-                this.call
-                    .post("ury_mosaic.ury_mosaic.api.ury_kot_display.serve_kot", {
-                        name: kot.name,
+                let method = "ury_mosaic.ury_mosaic.api.ury_kot_display.serve_kot";
+                let args = {
+                    name: kot.name,
+                    time: this.currentTime,
+                };
+
+                if(this.is_role_responsible_for_serving_kot) {
+                    method = "ury_mosaic.ury_mosaic.api.ury_kot_display.serve_kot_group";
+                    args = {
+                        names: kot.kot_names || [],
                         time: this.currentTime,
-                    })
+                    };
+                }
+
+                this.call
+                    .post(method, args)
                     .then((result) => {
                         // kot.isHidden = !kot.isHidden;
                         kot.showDiv = !kot.showDiv;
@@ -503,12 +565,23 @@
                         // if (savedState) {
                         //     kotitem.striked = JSON.parse(savedState);
                         // }
-                        this.calculateQty(
-                            kotitem,
-                            kotitem.quantity,
-                            kot.type,
-                            kotitem.cancelled_qty
-                        );
+
+                        if(this.is_role_responsible_for_serving_kot) {
+                            this.calculateQty(
+                                kotitem,
+                                kotitem.quantity,
+                                kotitem.kot_type,
+                                kotitem.cancelled_qty
+                            );
+                        }
+                        else {
+                            this.calculateQty(
+                                kotitem,
+                                kotitem.quantity,
+                                kot.type,
+                                kotitem.cancelled_qty
+                            );
+                        }
                     });
                 });
             },
@@ -531,6 +604,12 @@
             updateTimeRemaining() {
                 // console.log("update time", this.kot_channel);
                 this.kot.forEach((kot) => {
+                    if (this.is_role_responsible_for_serving_kot) {
+                        kot.kot_items.forEach((kot_item) => {
+                            kot_item.timeRemaining = this.calculateTimeElapsed(kot_item?.kot_time, kot_item?.preparation_time);
+                        });
+                    }
+                    
                     kot.timeRemaining = this.calculateTimeElapsed(kot.time, kot.preparation_time);
                     
                     console.log(kot.time);
@@ -723,7 +802,16 @@
                             this.showAudioAlertMessage = true;
                         }
                         socket.on(this.kot_channel, (doc) => {
-                            if (
+                            if (this.is_role_responsible_for_serving_kot) {
+                                if (this.audio_alert === 1) {
+                                    this.playAlertSound(doc.audio_file);
+                                }
+                                setTimeout(()=>{
+                                    this.fetchKOT().then(() => {
+                                        this.masonryLoading();
+                                    });
+                                },1500);
+                            } else if (
                                 this.userRole.includes(doc.production_units_roles_map[doc.kot.production]['role_responsible_for_updating_kot_items_status']) ||
                                 this.userRole.includes(doc.production_units_roles_map[doc.kot.production]['role_responsible_for_confirming_cancelled_kot']) ||
                                 this.userRole.includes(doc.production_units_roles_map[doc.kot.production]['role_responsible_for_serving_kot']) ||
@@ -735,9 +823,11 @@
                                 let kottime = localStorage.getItem("kot_time");
                                 if (doc.last_kot_time !== null) {
                                     if (doc.last_kot_time !== kottime) {
-                                        this.fetchKOT().then(() => {
-                                            this.masonryLoading();
-                                        });
+                                        setTimeout(()=>{
+                                            this.fetchKOT().then(() => {
+                                                this.masonryLoading();
+                                            });
+                                        },1500);
                                     }
                                 }
                                 this.kot.unshift(doc.kot);
@@ -750,7 +840,7 @@
                                             this.masonryLoading();
                                         });
                                     }
-                                },1500)
+                                },1500);
                                 localStorage.setItem("kot_time", doc.kot.time);
                             }
                         });

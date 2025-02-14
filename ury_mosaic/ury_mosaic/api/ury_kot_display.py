@@ -27,7 +27,7 @@ def send_fetch_kot_socket_to_mosaic(branch, event):
 
 # Function to set order status in a KOT document
 @frappe.whitelist()
-def serve_kot(name, time):
+def serve_kot(name, time, Group=False):
     current_time = get_datetime()
     creation_time = frappe.db.get_value("URY KOT",name,"creation")
 
@@ -37,8 +37,17 @@ def serve_kot(name, time):
     frappe.db.set_value("URY KOT",name,"production_time",production_time_minutes)
     frappe.db.set_value("URY KOT", name, "order_status", "Served")
 
-    branch = frappe.db.get_value("URY KOT", name, "branch")
+    if not Group:
+        branch = frappe.db.get_value("URY KOT", name, "branch")
+        send_fetch_kot_socket_to_mosaic(branch, "serve_kot")
 
+
+@frappe.whitelist()
+def serve_kot_group(names, time):
+    for name in names:
+        serve_kot(name, time, Group=True)
+    
+    branch = frappe.db.get_value("URY KOT", names[0], "branch")
     send_fetch_kot_socket_to_mosaic(branch, "serve_kot")
 
 
@@ -84,13 +93,25 @@ def kot_list():
     user_roles = frappe.get_roles(frappe.session.user)
     is_restaurant_manager = "URY Restaurant Manager" in user_roles
 
-    if not is_restaurant_manager:
+    is_role_responsible_for_serving_kot = False
+
+    if is_restaurant_manager:
+        for production_unit in production_units:
+            production_units_roles_map[production_unit.name] = {
+                'role_responsible_for_updating_kot_items_status': None,
+                'role_responsible_for_confirming_cancelled_kot': None,
+                'role_responsible_for_serving_kot': None,
+            }
+    else:
         for production_unit in production_units:
             production_units_roles_map[production_unit.name] = {
                 'role_responsible_for_updating_kot_items_status': production_unit.role_responsible_for_updating_kot_items_status,
                 'role_responsible_for_confirming_cancelled_kot': production_unit.role_responsible_for_confirming_cancelled_kot,
                 'role_responsible_for_serving_kot': production_unit.role_responsible_for_serving_kot,
             }
+
+            if production_unit.role_responsible_for_serving_kot in user_roles:
+                is_role_responsible_for_serving_kot = True
 
             if any(role in user_roles for role in [
                 production_unit.role_responsible_for_updating_kot_items_status,
@@ -143,6 +164,75 @@ def kot_list():
         kotdoc = frappe.get_doc("URY KOT", kot.name)
         kotjson = json.loads(frappe.as_json(kotdoc))
         KOT.append(kotjson)
+    
+    # if is_role_responsible_for_serving_kot:
+    if is_role_responsible_for_serving_kot or is_restaurant_manager:
+        KOT_Invoice_Grouped = {}
+        KOT_Table_Grouped = {}
+        for KOT_Doc in KOT:
+            if KOT_Doc['table_takeaway']:
+                invoice = KOT_Doc['invoice']
+                if invoice not in KOT_Invoice_Grouped:
+                    KOT_Invoice_Grouped[invoice] = KOT_Doc
+                    KOT_Invoice_Grouped[invoice]['kot_names'] = []
+                    
+                    kot_items = []
+                    for kot_item in KOT_Doc['kot_items']:
+                        new_kot_item = kot_item
+                        new_kot_item['kot_production'] = KOT_Doc['production']
+                        new_kot_item['kot_time'] = KOT_Doc['time']
+                        new_kot_item['kot_type'] = KOT_Doc['type']
+
+                        kot_items.append(new_kot_item)
+                        
+                    KOT_Invoice_Grouped[invoice]['kot_items'] = kot_items
+
+                elif KOT_Invoice_Grouped[invoice]:
+                    for kot_item in KOT_Doc['kot_items']:
+                        new_kot_item = kot_item
+                        new_kot_item['kot_production'] = KOT_Doc['production']
+                        new_kot_item['kot_time'] = KOT_Doc['time']
+                        new_kot_item['kot_type'] = KOT_Doc['type']
+
+                        KOT_Invoice_Grouped[invoice]['kot_items'].append(new_kot_item)
+
+                KOT_Invoice_Grouped[invoice]['kot_names'].append(KOT_Doc['name']) if (KOT_Doc['name'] not in KOT_Invoice_Grouped[invoice]['kot_names']) else None
+            else:
+                restaurant_table = KOT_Doc['restaurant_table']
+                if restaurant_table not in KOT_Table_Grouped:
+                    KOT_Table_Grouped[restaurant_table] = KOT_Doc
+                    KOT_Table_Grouped[restaurant_table]['kot_names'] = []
+                    
+                    kot_items = []
+                    for kot_item in KOT_Doc['kot_items']:
+                        new_kot_item = kot_item
+                        new_kot_item['kot_production'] = KOT_Doc['production']
+                        new_kot_item['kot_time'] = KOT_Doc['time']
+                        new_kot_item['kot_type'] = KOT_Doc['type']
+
+                        kot_items.append(new_kot_item)
+                        
+                    KOT_Table_Grouped[restaurant_table]['kot_items'] = kot_items
+
+                elif KOT_Table_Grouped[restaurant_table]:
+                    for kot_item in KOT_Doc['kot_items']:
+                        new_kot_item = kot_item
+                        new_kot_item['kot_production'] = KOT_Doc['production']
+                        new_kot_item['kot_time'] = KOT_Doc['time']
+                        new_kot_item['kot_type'] = KOT_Doc['type']
+
+                        KOT_Table_Grouped[restaurant_table]['kot_items'].append(new_kot_item)
+
+                KOT_Table_Grouped[restaurant_table]['kot_names'].append(KOT_Doc['name']) if (KOT_Doc['name'] not in KOT_Table_Grouped[restaurant_table]['kot_names']) else None
+        
+        invoice_grouped_list = list(KOT_Invoice_Grouped.values())
+        table_grouped_list = list(KOT_Table_Grouped.values())
+
+        merged_kot_list = table_grouped_list + invoice_grouped_list
+
+        KOT = merged_kot_list
+
+
     return {
         "KOT": KOT,
         "Branch": branch,
@@ -151,5 +241,5 @@ def kot_list():
         "audio_alert": audio_alert,
         "daily_order_number":daily_order_number,
         "production_units_roles_map": production_units_roles_map,
+        "is_role_responsible_for_serving_kot": is_role_responsible_for_serving_kot,
     }
-

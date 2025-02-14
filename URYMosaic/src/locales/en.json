@@ -5,5 +5,10 @@
     "table": "Table",
     "order": "No",
     "m": "m",
-    "alertSound": "Sound notifications are disabled. Click anywhere to enable them."
+    "alertSound": "Sound notifications are disabled. Click anywhere to enable them.",
+    "New Order": "New Order",
+    "Order Modified": "Order Modified",
+    "Cancelled": "Cancelled",
+    "Partially cancelled": "Partially cancelled",
+    "Duplicate": "Duplicate"
 }
